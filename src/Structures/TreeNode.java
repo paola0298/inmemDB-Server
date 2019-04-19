@@ -1,6 +1,6 @@
 package Structures;
 
-public class TreeNode<T extends Comparable<T>> {
+public class TreeNode<T> {
     private T value;
     private TreeNode<T> left;
     private TreeNode<T> right;
@@ -33,4 +33,7 @@ public class TreeNode<T extends Comparable<T>> {
     public void setRight(TreeNode<T> right) {
         this.right = right;
     }
+
+
+
 }
