@@ -1,5 +1,6 @@
 package Connection;
 
+import Structures.LinkedList;
 import org.json.JSONObject;
 
 import java.io.DataInputStream;
@@ -18,6 +19,8 @@ import java.net.Socket;
 public class Server {
     private ServerSocket serverSocket;
     private boolean isRunning = true;
+
+    private LinkedList<JSONObject> schemes = new LinkedList<>();
 
 
     /**
@@ -88,34 +91,40 @@ public class Server {
 
             switch (msg.get("action").toString()) {
                 case "createScheme":
+                    createScheme();
                     break;
 
                 case "deleteScheme":
+                    deleteScheme();
                     break;
 
                 case "modifyScheme":
+                    modifyScheme();
                     break;
 
                 case "queryScheme":
+                    queryScheme();
                     break;
 
                 case "insertData":
+                    insertData();
                     break;
 
                 case "deleteData":
+                    deleteData();
 
                     break;
 
                 case "queryData":
-
+                    queryData();
                     break;
 
                 case "createIndex":
-
+                    createIndex();
                     break;
 
                 case "deleteIndex":
-
+                    deleteIndex();
                     break;
 
                 default:
@@ -130,6 +139,33 @@ public class Server {
             }
         }
 
+    }
+
+    private void createScheme() {
+    }
+
+    private void deleteScheme() {
+    }
+
+    private void modifyScheme() {
+    }
+
+    private void queryScheme() {
+    }
+
+    private void insertData() {
+    }
+
+    private void deleteData() {
+    }
+
+    private void queryData() {
+    }
+
+    private void createIndex() {
+    }
+
+    private void deleteIndex() {
     }
 
 
