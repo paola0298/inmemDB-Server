@@ -1,6 +1,8 @@
 package Connection;
 
 import Structures.LinkedList;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -10,7 +12,9 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
 
 /**
  * @author Paola
@@ -94,17 +98,20 @@ public class Server {
 
             switch (msg.get("action").toString()) {
                 case "createScheme":
-                    String type = msg.getString("name");
+                    String name = msg.getString("name");
                     JSONArray attrName = msg.getJSONArray("attr_name");
                     JSONArray attrSize = msg.getJSONArray("attr_size");
                     JSONArray attrType = msg.getJSONArray("attr_type");
+                    //TODO agregar join con otros esquemas
                     String pk = msg.getString("primaryKey");
 
-                    createScheme(type, attrName, attrSize, attrType, pk);
+                    response = createScheme(name, attrName, attrSize, attrType, pk);
+                    sendResponse(response.toString(), con);
                     break;
 
                 case "deleteScheme":
                     deleteScheme();
+
                     break;
 
                 case "modifyScheme":
@@ -152,19 +159,75 @@ public class Server {
 
     }
 
-    private void createScheme(String type, JSONArray attrName, JSONArray attrSize, JSONArray attrType, String pk) {
+    private JSONObject createScheme(String name, JSONArray attrName, JSONArray attrSize, JSONArray attrType, String pk) {
+        JSONObject response = new JSONObject();
+        JSONObject newScheme = new JSONObject();
+        String serializedScheme = "";
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        if (schemes.get(name) == null){
+            try {
+                newScheme.put("attrName", attrName);
+                newScheme.put("attrType", attrType);
+                newScheme.put("attrSize", attrSize);
+                //TODO agregar join con otros esquemas
+                newScheme.put("primaryKey", pk);
+                schemes.put(name, newScheme);
+
+                serializedScheme = objectMapper.writeValueAsString(schemes);
+                response.put("status", "success");
+                response.put("schemes", serializedScheme);
+
+            } catch (JsonProcessingException e) {
+                response.put("status", "failed");
+                response.put("error", "Serialize");
+            }
+        } else {
+            response.put("status", "failed");
+            response.put("error", "Already exists");
+        }
+
+        return response;
+
     }
 
     private void deleteScheme() {
+        //TODO si el esquema tiene join no se puede eliminar, de lo contrario se borra el esquema y sus colecciones
     }
 
-    private void modifyScheme() {
+    private void modifyScheme() { //modificar tipo de dato y tamaño
     }
 
     private void queryScheme() {
     }
 
     private void insertData(String scheme, JSONArray attr) {
+        JSONObject newData = new JSONObject();
+        JSONObject response = new JSONObject();
+        Hashtable<String, JSONObject> collection = new Hashtable<>();
+        String actualPK = "";
+
+        JSONObject actualScheme = schemes.get(scheme);
+        String pkAttr = actualScheme.getString("primaryKey");
+
+        JSONObject elements = attr.getJSONObject(0);
+        Iterator<String> keys = elements.keys();
+
+        while(keys.hasNext()) {
+            String key = keys.next();
+            String element = elements.getString(key);
+            if (element.equals(pkAttr)){
+                actualPK = element;
+                break;
+            }
+        }
+
+
+
+
+
+
+
     }
 
     private void deleteData() {

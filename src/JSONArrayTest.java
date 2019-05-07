@@ -34,5 +34,6 @@ public class JSONArrayTest {
             String key = keys.next();
             System.out.println(elements.getString(key));
         }
+
     }
 }
