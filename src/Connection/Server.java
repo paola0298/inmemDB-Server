@@ -1,6 +1,7 @@
 package Connection;
 
 import Structures.LinkedList;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.DataInputStream;
@@ -9,6 +10,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Hashtable;
 
 /**
  * @author Paola
@@ -20,7 +22,8 @@ public class Server {
     private ServerSocket serverSocket;
     private boolean isRunning = true;
 
-    private LinkedList<JSONObject> schemes = new LinkedList<>();
+    private Hashtable<String, JSONObject> schemes;
+    private Hashtable<String, Hashtable<String, JSONObject>> collections;
 
 
     /**
@@ -91,7 +94,13 @@ public class Server {
 
             switch (msg.get("action").toString()) {
                 case "createScheme":
-                    createScheme();
+                    String type = msg.getString("name");
+                    JSONArray attrName = msg.getJSONArray("attr_name");
+                    JSONArray attrSize = msg.getJSONArray("attr_size");
+                    JSONArray attrType = msg.getJSONArray("attr_type");
+                    String pk = msg.getString("primaryKey");
+
+                    createScheme(type, attrName, attrSize, attrType, pk);
                     break;
 
                 case "deleteScheme":
@@ -107,7 +116,9 @@ public class Server {
                     break;
 
                 case "insertData":
-                    insertData();
+                    String scheme = msg.getString("type");
+                    JSONArray attr = msg.getJSONArray("attr");
+                    insertData(scheme, attr);
                     break;
 
                 case "deleteData":
@@ -141,7 +152,7 @@ public class Server {
 
     }
 
-    private void createScheme() {
+    private void createScheme(String type, JSONArray attrName, JSONArray attrSize, JSONArray attrType, String pk) {
     }
 
     private void deleteScheme() {
@@ -153,7 +164,7 @@ public class Server {
     private void queryScheme() {
     }
 
-    private void insertData() {
+    private void insertData(String scheme, JSONArray attr) {
     }
 
     private void deleteData() {
