@@ -12,7 +12,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
 
@@ -26,9 +25,10 @@ public class Server {
     private ServerSocket serverSocket;
     private boolean isRunning = true;
 
-    private Hashtable<String, JSONObject> schemes;
-    private Hashtable<String, Hashtable<String, JSONObject>> collections;
-
+    private Hashtable<String, JSONObject> schemes = new Hashtable<>();
+    //nombre del esquema, json con estructura del esquema
+    private Hashtable<String, Hashtable<String, JSONArray>> collections = new Hashtable<>();
+    // nombre del esquema, HashTable <id, jsonArray con atributos>
 
     /**
      * @param port Puerto en el cual el servidor esta escuchando
@@ -96,21 +96,21 @@ public class Server {
             JSONObject msg = new JSONObject(receiveDataFromClient(con));
             JSONObject response;
 
+            String scheme = "";
+
             switch (msg.get("action").toString()) {
                 case "createScheme":
-                    String name = msg.getString("name");
-                    JSONArray attrName = msg.getJSONArray("attr_name");
-                    JSONArray attrSize = msg.getJSONArray("attr_size");
-                    JSONArray attrType = msg.getJSONArray("attr_type");
-                    //TODO agregar join con otros esquemas
-                    String pk = msg.getString("primaryKey");
+                    scheme = msg.getString("scheme");
+                    //si hay tipo que es join, en el array de size, va a estar con quien es el join
 
-                    response = createScheme(name, attrName, attrSize, attrType, pk);
+                    response = createScheme(scheme);
                     sendResponse(response.toString(), con);
                     break;
 
                 case "deleteScheme":
-                    deleteScheme();
+                    scheme = msg.getString("scheme");
+                    response = deleteScheme(scheme);
+                    sendResponse(response.toString(), con);
 
                     break;
 
@@ -123,13 +123,16 @@ public class Server {
                     break;
 
                 case "insertData":
-                    String scheme = msg.getString("type");
-                    JSONArray attr = msg.getJSONArray("attr");
-                    insertData(scheme, attr);
+                    scheme = msg.getString("type"); //esquema al que pertenece
+                    JSONArray attr = msg.getJSONArray("attr"); //lista de atributos que se ingresaron
+                    response = insertData(scheme, attr);
+                    sendResponse(response.toString(), con);
                     break;
 
                 case "deleteData":
-                    deleteData();
+                    scheme = msg.getString("scheme");
+                    String primaryKey = msg.getString("primaryKey");
+                    response = deleteData(scheme, primaryKey);
 
                     break;
 
@@ -159,20 +162,16 @@ public class Server {
 
     }
 
-    private JSONObject createScheme(String name, JSONArray attrName, JSONArray attrSize, JSONArray attrType, String pk) {
+    private JSONObject createScheme(String newScheme) {
         JSONObject response = new JSONObject();
-        JSONObject newScheme = new JSONObject();
+        JSONObject schemeObject = new JSONObject(newScheme);
+        String schemeName = schemeObject.getString("name");
         String serializedScheme = "";
         ObjectMapper objectMapper = new ObjectMapper();
 
-        if (schemes.get(name) == null){
+        if (schemes.get(schemeName) == null){
             try {
-                newScheme.put("attrName", attrName);
-                newScheme.put("attrType", attrType);
-                newScheme.put("attrSize", attrSize);
-                //TODO agregar join con otros esquemas
-                newScheme.put("primaryKey", pk);
-                schemes.put(name, newScheme);
+                schemes.put(schemeName, schemeObject);
 
                 serializedScheme = objectMapper.writeValueAsString(schemes);
                 response.put("status", "success");
@@ -191,49 +190,130 @@ public class Server {
 
     }
 
-    private void deleteScheme() {
-        //TODO si el esquema tiene join no se puede eliminar, de lo contrario se borra el esquema y sus colecciones
+    private JSONObject deleteScheme(String name) {
+        boolean flag = false;
+        JSONObject response = new JSONObject();
+
+        if (schemes.get(name) != null){
+            Hashtable<String, JSONArray> collectionOfScheme =  collections.get(name);
+
+            if (collectionOfScheme != null) {
+
+                for (JSONObject item : schemes.values()){
+                    JSONArray sizeAttr = item.getJSONArray("attrSize");
+
+                    for (int i=0; i<sizeAttr.length(); i++){
+                        if (sizeAttr.get(i).equals("join") && !flag){
+                            response.put("status", "failed");
+                            response.put("error", "join found");
+                            flag = true;
+                        }
+                    }
+                }
+                if (!flag){
+                    response = deleteSchemeFromHash(name);
+                }
+            } else{
+                response = deleteSchemeFromHash(name);
+            }
+
+        } else {
+            response.put("status", "failed");
+            response.put("error", "No exists");
+        }
+        return response;
+    }
+
+
+    private JSONObject deleteSchemeFromHash(String name){
+        JSONObject response = new JSONObject();
+
+        schemes.remove(name);
+        collections.remove(name);
+
+        // enviar nuevos datos serializados a cliente
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            String serializedScheme = objectMapper.writeValueAsString(schemes);
+            String serializedCollections = objectMapper.writeValueAsString(collections);
+            response.put("status", "success");
+            response.put("schemes", serializedScheme);
+            response.put("collections", serializedCollections);
+        } catch (JsonProcessingException e) {
+            response.put("status", "failed");
+            response.put("error", "Serialize");
+        }
+
+        return response;
+
     }
 
     private void modifyScheme() { //modificar tipo de dato y tamaño
     }
 
     private void queryScheme() {
+        //
     }
 
-    private void insertData(String scheme, JSONArray attr) {
-        JSONObject newData = new JSONObject();
+    private JSONObject insertData(String scheme, JSONArray attr) {
         JSONObject response = new JSONObject();
-        Hashtable<String, JSONObject> collection = new Hashtable<>();
-        String actualPK = "";
-
         JSONObject actualScheme = schemes.get(scheme);
-        String pkAttr = actualScheme.getString("primaryKey");
+        if (actualScheme != null){
+            // el esquema existe
+            //obtener quien es la llave primaria de ese esquema
+            String actualPKAttr = actualScheme.getString("primaryKey");
+            JSONArray attrName = actualScheme.getJSONArray("attrName");
+            int posOfPk = -1;
 
-        JSONObject elements = attr.getJSONObject(0);
-        Iterator<String> keys = elements.keys();
-
-        while(keys.hasNext()) {
-            String key = keys.next();
-            String element = elements.getString(key);
-            if (element.equals(pkAttr)){
-                actualPK = element;
-                break;
+            for(int i=0; i<attrName.length(); i++){
+                if (attrName.get(i).equals(actualPKAttr)){
+                    posOfPk = i;
+                }
             }
+
+            // obtener el atributo de la llave primaria
+            String actualPk = attr.getString(posOfPk);
+
+            Hashtable<String, JSONArray> collectionOfScheme =  collections.get(scheme);
+            if (collectionOfScheme != null){
+                // en collectionOfScheme tengo que colocar el nuevo registro
+                collectionOfScheme.put(actualPk, attr);
+            } else{
+                // tengo que crear una nueva collecion para el esquema actual
+                Hashtable<String, JSONArray> newCollection = new Hashtable<>();
+                newCollection.put(actualPk, attr);
+                collections.put(scheme, newCollection);
+            }
+
+            //serializar collections
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                String serializedCollections = objectMapper.writeValueAsString(collections);
+                response.put("status", "success");
+                response.put("collections", serializedCollections);
+            } catch (JsonProcessingException e) {
+                response.put("status", "failed");
+                response.put("error", "Serialize");
+            }
+
+        } else{
+            //el esquema no existe
+            response.put("status", "failed");
+            response.put("error", "No exists");
         }
 
 
-
-
-
-
+        return response;
 
     }
 
-    private void deleteData() {
+    private JSONObject deleteData(String scheme, String primaryKey) {
+        return new JSONObject();
+
     }
 
     private void queryData() {
+
     }
 
     private void createIndex() {
