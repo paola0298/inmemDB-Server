@@ -60,7 +60,7 @@ public class HashTableTest {
 
 
 
-        collections.put("esquema1", registros);
+//        collections.put("esquema1", registros);
 
 
 
@@ -68,6 +68,7 @@ public class HashTableTest {
 
 
         Hashtable<String, JSONObject> collec = collections.get("esquema1");
+        System.out.println(collec);
 
 
         if (collec != null){
