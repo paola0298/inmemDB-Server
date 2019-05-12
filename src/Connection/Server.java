@@ -108,17 +108,13 @@ public class Server {
 
                 case "deleteScheme":
                     scheme = msg.getString("scheme");
-                    response = deleteScheme1(scheme);
+                    response = deleteScheme(scheme);
                     sendResponse(response.toString(), con);
 
                     break;
 
                 case "modifyScheme":
                     modifyScheme();
-                    break;
-
-                case "queryScheme":
-                    queryScheme();
                     break;
 
                 case "insertData":
@@ -130,8 +126,10 @@ public class Server {
 
                 case "deleteData":
                     scheme = msg.getString("scheme");
-                    String primaryKey = msg.getString("primaryKey");
-                    response = deleteData(scheme, primaryKey);
+                    JSONArray primaryKeys = msg.getJSONArray("records");
+
+                    response = deleteData(scheme, primaryKeys);
+                    sendResponse(response.toString(), con);
 
                     break;
 
@@ -162,8 +160,6 @@ public class Server {
     }
 
     private JSONObject createScheme(String newScheme) {
-        System.out.println("Creando esquema...");
-
         JSONObject response = new JSONObject();
         JSONObject schemeObject = new JSONObject(newScheme);
         String schemeName = schemeObject.getString("name");
@@ -173,7 +169,6 @@ public class Server {
         if (schemes.get(schemeName) == null){
             try {
                 schemes.put(schemeName, schemeObject.toString());
-                System.out.println("Esquema agregado");
                 System.out.println(schemes.toString());
 
                 serializedScheme = objectMapper.writeValueAsString(schemes);
@@ -189,61 +184,34 @@ public class Server {
             response.put("error", "Already exists");
         }
         return response;
-
     }
 
 
-    private JSONObject deleteScheme1(String name){
-        System.out.println("Deleting scheme... method 2");
+    private JSONObject deleteScheme(String name){
         JSONObject response = new JSONObject();
-
-
         if (schemes.containsKey(name)){
             //el esquema existe
-            System.out.println("El esquema existe");
-
             Enumeration<String> namesOfScheme = schemes.keys();
-
             while(namesOfScheme.hasMoreElements()) { // por cada esquema creado
                 String schemeName = namesOfScheme.nextElement();
                 JSONObject schemeStructure = new JSONObject(schemes.get(schemeName));
-
-                JSONArray sizeArr = schemeStructure.getJSONArray("attrSize"); //obtengo el array donde dice si hay join
-
-                System.out.println("Revisando " + schemeName);
-                for (int i = 0; i < sizeArr.length(); i++) {
-                    if (sizeArr.get(i).equals("join")) {
-                        System.out.println("Hay un join");
+                JSONArray sizeArr = schemeStructure.getJSONArray("attrSize"); //obtengo el array donde dice con quien es el join
+                JSONArray typeArr = schemeStructure.getJSONArray("attrType"); //obtengo el array donde dice si hay join
+                for (int i = 0; i < typeArr.length(); i++) {
+                    if (typeArr.get(i).equals("join")) {
                         // ese esquema tiene un join
-                        //recorrer la coleccion que tiene join, para ver si ese join es con el esquema que quiero eliminar
-
-
-                        Hashtable<String, String> collection = collections.get(schemeName);
-
-                        if (collection != null) { // si el esquema tiene colecciones creadas
-                            //recorrer la coleccion que tiene join, para ver si ese join es con el esquema que quiero eliminar
-
-                            for (String collec : collection.values()){
-                                JSONArray attrArray = new JSONArray(collec);
-                                for (int j=0; j<attrArray.length(); j++){
-                                    if (attrArray.get(j).equals(name)){
-                                        // no se puede eliminar el esquema
-                                        System.out.println("No se puede eliminar el esquema");
-                                        response.put("status", "failed");
-                                        response.put("error", "join");
-                                        return response;
-                                    }
-                                }
-                            }
+                        //ver en estructura del esquema con quien es el join
+                        if (sizeArr.get(i).equals(name)) {
+                            System.out.println("No se puede eliminar el esquema");
+                            response.put("status", "failed");
+                            response.put("error", "join");
+                            return response;
                         }
                     }
                 }
             }
-
             response = deleteSchemeFromHash(name);
             return response;
-
-
         } else {
             response.put("status", "failed");
             response.put("error", "No exists");
@@ -253,16 +221,8 @@ public class Server {
 
     private JSONObject deleteSchemeFromHash(String name){
         JSONObject response = new JSONObject();
-
-        System.out.println("Schemes before delete " + schemes);
-        System.out.println("Collections before delete " + collections);
-
         schemes.remove(name);
         collections.remove(name);
-
-        System.out.println("Schemes after delete " + schemes);
-        System.out.println("Collections after delete " + collections);
-
         // enviar nuevos datos serializados a cliente
         ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -275,19 +235,15 @@ public class Server {
             response.put("status", "failed");
             response.put("error", "Serialize");
         }
-
         return response;
-
     }
 
     private void modifyScheme() { //modificar tipo de dato y tamaño
     }
 
-    private void queryScheme() {
-        //
-    }
 
     private JSONObject insertData(String scheme, JSONArray attr) {
+        System.out.println("Insertando datos...");
         JSONObject response = new JSONObject();
         String schemeString = schemes.get(scheme);
         if (schemeString != null){
@@ -303,10 +259,8 @@ public class Server {
                     posOfPk = i;
                 }
             }
-
             // obtener el atributo de la llave primaria
             String actualPk = attr.getString(posOfPk);
-
             Hashtable<String, String> collectionOfScheme =  collections.get(scheme);
             if (collectionOfScheme != null){
                 // en collectionOfScheme tengo que colocar el nuevo registro
@@ -320,7 +274,6 @@ public class Server {
                 newCollection.put(actualPk, attr.toString());
                 collections.put(scheme, newCollection);
             }
-
             //serializar collections
             ObjectMapper objectMapper = new ObjectMapper();
             try {
@@ -331,66 +284,72 @@ public class Server {
                 response.put("status", "failed");
                 response.put("error", "Serialize");
             }
-
         } else{
             //el esquema no existe
             response.put("status", "failed");
             response.put("error", "No exists");
         }
-
-        System.out.println("Colecciones de datos \n" + collections);
-
-
         return response;
 
     }
 
-    private JSONObject deleteData(String scheme, String primaryKey) {
-        //TODO revisar metodo
+    private JSONObject deleteData(String scheme, JSONArray primaryKeys) {
+        System.out.println("Eliminando registro de " + scheme);
         JSONObject response = new JSONObject();
 
         Hashtable<String, String> collectionOfScheme =  collections.get(scheme);
 
         if (collectionOfScheme != null){
             //el esquema tiene colecciones de datos
-            if (collectionOfScheme.get(primaryKey) != null){
-                // la coleccion de datos existe
-                collectionOfScheme.remove(primaryKey);
+            System.out.println("El esquema tiene colecciones");
 
-                ObjectMapper objectMapper = new ObjectMapper();
-                try {
-                    String serializedCollections = objectMapper.writeValueAsString(collections);
-                    response.put("status", "success");
-                    response.put("collections", serializedCollections);
-                } catch (JsonProcessingException e) {
-                    response.put("status", "failed");
-                    response.put("error", "serialize");
+            for (int i=0; i<primaryKeys.length(); i++) {
+
+                String primaryKey = primaryKeys.getString(i);
+
+                System.out.println("collectionOfScheme.get(primaryKey) " + collectionOfScheme.get(primaryKey));
+                if (collectionOfScheme.get(primaryKey) != null) {
+                    // la coleccion de datos existe
+
+                    System.out.println("Collections before remove " + collections);
+
+                    collectionOfScheme.remove(primaryKey);
+                    collections.remove(scheme);
+                    collections.put(scheme, collectionOfScheme);
+
+                    System.out.println("Collections after remove " + collections);
+
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    try {
+                        String serializedCollections = objectMapper.writeValueAsString(collections);
+                        response.put("status", "success");
+                        response.put("collections", serializedCollections);
+                        System.out.println("Sending response");
+                        return response;
+                    } catch (JsonProcessingException e) {
+                        response.put("status", "failed");
+                        response.put("error", "serialize");
+                        return response;
+                    }
                 }
-
-            } else {
-                // la coleccion de datos no existe
-                response.put("status", "failed");
-                response.put("error", "no exists");
             }
+
+            response.put("status", "failed");
+            response.put("error", "register not found");
+            return response;
         } else{
             //el esquema no tiene colleciones de datos
             response.put("status", "failed");
             response.put("error", "no data");
+            return response;
         }
-
-        return response;
-
     }
 
-    private void queryData() {
+    private void queryData() { }
 
-    }
+    private void createIndex() { }
 
-    private void createIndex() {
-    }
-
-    private void deleteIndex() {
-    }
+    private void deleteIndex() { }
 
 
     public static void main(String[] args) {
