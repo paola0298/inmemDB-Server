@@ -106,6 +106,11 @@ public class Server {
                     sendResponse(response.toString(), con);
                     break;
 
+                case "querySchemes":
+                    response = querySchemes();
+                    sendResponse(response.toString(), con);
+                    break;
+
                 case "deleteScheme":
                     scheme = msg.getString("scheme");
                     response = deleteScheme(scheme);
@@ -149,7 +154,9 @@ public class Server {
                     break;
 
                 default:
-                    sendResponse("Palabra clave no encontrada", con);
+                    response = new JSONObject();
+                    response.put("status", "action_not_found");
+                    sendResponse(response.toString(), con);
             }
 
             try {
@@ -162,11 +169,29 @@ public class Server {
 
     }
 
+    private JSONObject querySchemes() {
+        JSONObject response = new JSONObject();
+        String serializedSchemes;
+        ObjectMapper mapper = new ObjectMapper();
+
+        try {
+            serializedSchemes = mapper.writeValueAsString(schemes);
+            response.put("status", "success");
+            response.put("schemes", serializedSchemes);
+
+        } catch (JsonProcessingException e) {
+            response.put("status", "failed");
+            response.put("error", "Serialize");
+        }
+
+        return response;
+    }
+
     private JSONObject createScheme(String newScheme) {
         JSONObject response = new JSONObject();
         JSONObject schemeObject = new JSONObject(newScheme);
         String schemeName = schemeObject.getString("name");
-        String serializedScheme = "";
+        String serializedScheme;
         ObjectMapper objectMapper = new ObjectMapper();
 
         if (schemes.get(schemeName) == null){
