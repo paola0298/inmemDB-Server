@@ -1,4 +1,5 @@
 package Structures;
 
-public class AVLTree {
+public class AVLTree<K extends  Comparable<K>,V>{
+
 }
