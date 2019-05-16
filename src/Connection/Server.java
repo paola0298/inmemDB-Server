@@ -43,7 +43,7 @@ public class Server {
     /**
      * @return La conexion con el cliente
      */
-    public Socket clientConnection(){
+    private Socket clientConnection(){
         Socket con = null;
         try {
             con = serverSocket.accept();
@@ -56,15 +56,13 @@ public class Server {
     /**
      * @return El mensaje recibido del cliente
      */
-    public String receiveDataFromClient(Socket con){
+    private String receiveDataFromClient(Socket con){
         String actualMessage = "";
         try {
             DataInputStream inputStream = new DataInputStream(con.getInputStream());
             actualMessage = inputStream.readUTF();
-        } catch (EOFException ex) {
+        } catch (IOException ex) {
             System.out.println("Error reading stream " + ex.getMessage());
-        } catch (IOException e) {
-            System.out.println("Error reading stream " + e.getMessage());
         }
         return actualMessage;
     }
@@ -73,7 +71,7 @@ public class Server {
      * @param response Respuesta para el cliente
      * @param con Conexion con el cliente
      */
-    public void sendResponse(String response, Socket con){
+    private void sendResponse(String response, Socket con){
         try {
             DataOutputStream outputStream = new DataOutputStream(con.getOutputStream());
             outputStream.writeUTF(response);
@@ -85,7 +83,7 @@ public class Server {
     /**
      * Escucha las conexiones del cliente
      */
-    public void connectionListener(){
+    private void connectionListener(){
 
         while (this.isRunning){
             System.out.println("Esperando conexión");
@@ -95,7 +93,7 @@ public class Server {
             JSONObject msg = new JSONObject(receiveDataFromClient(con));
             JSONObject response;
 
-            String scheme = "";
+            String scheme;
 
             switch (msg.get("action").toString()) {
                 case "createScheme":
@@ -111,6 +109,11 @@ public class Server {
                     sendResponse(response.toString(), con);
                     break;
 
+                case "getSchemeData":
+                    response = getSchemeData(msg.getString("schemeName"));
+                    sendResponse(response.toString(), con);
+                    break;
+
                 case "deleteScheme":
                     scheme = msg.getString("scheme");
                     response = deleteScheme(scheme);
@@ -123,7 +126,7 @@ public class Server {
                     break;
 
                 case "insertData":
-                    scheme = msg.getString("type"); //esquema al que pertenece
+                    scheme = msg.getString("schemeName"); //esquema al que pertenece
                     JSONArray attr = msg.getJSONArray("attr"); //lista de atributos que se ingresaron
                     response = insertData(scheme, attr);
                     sendResponse(response.toString(), con);
@@ -182,6 +185,28 @@ public class Server {
         } catch (JsonProcessingException e) {
             response.put("status", "failed");
             response.put("error", "Serialize");
+        }
+
+        return response;
+    }
+
+    private JSONObject getSchemeData(String schemeName) {
+        JSONObject response = new JSONObject();
+        ObjectMapper mapper = new ObjectMapper();
+        String scheme = schemes.get(schemeName);
+        String serializedCollection;
+
+        try {
+            Hashtable<String, String> schemeCollection = collections.get(schemeName);
+            serializedCollection = mapper.writeValueAsString(schemeCollection);
+
+            response.put("status", "success");
+            response.put("scheme", scheme);
+            response.put("collection", serializedCollection);
+
+        } catch (IOException e) {
+            response.put("status", "failed");
+            response.put("error", "serialize");
         }
 
         return response;
@@ -456,14 +481,17 @@ public class Server {
 
     private void deleteIndex() { }
 
+    private void stopServer() {
+        this.isRunning = false;
+    }
 
     public static void main(String[] args) {
+
         int port = 6307;
         Server server = new Server(port);
         server.connectionListener();
 
     }
-
 
     /*
 
