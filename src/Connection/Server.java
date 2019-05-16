@@ -26,7 +26,7 @@ public class Server {
 
     private Hashtable<String, String> schemes = new Hashtable<>();
     //nombre del esquema, json con estructura del esquema
-    private Hashtable<String, Hashtable<String, String>> collections = new Hashtable<>();
+        private Hashtable<String, Hashtable<String, String>> collections = new Hashtable<>();
     // nombre del esquema, HashTable <id, jsonArray con atributos>
 
     /**
@@ -126,7 +126,9 @@ public class Server {
                     break;
 
                 case "insertData":
+
                     scheme = msg.getString("schemeName"); //esquema al que pertenece
+
                     JSONArray attr = msg.getJSONArray("attr"); //lista de atributos que se ingresaron
                     response = insertData(scheme, attr);
                     sendResponse(response.toString(), con);
@@ -402,7 +404,6 @@ public class Server {
         "searchBy" : "campo de busqueda"
         "index" : true o false
         "tree" : arbol de busqueda  Esto se obtendria si index=true
-        "join" : "estructura con la que tiene join" o null
         "searchByJoin" : true o false  Si es true, entonces el campo de busqueda va a ser de
                                         la estructura del join
     }
@@ -425,27 +426,56 @@ public class Server {
             System.out.println("Buscando por indice");
         } else if (!index && searchByJoin) {
             System.out.println("Busqueda lineal de columna del join");
+
+
         } else if (index && searchByJoin) {
             System.out.println("Busqueda por indice en columna del join");
-        } else if (!index && !searchByJoin){
+        } else if (!index && !searchByJoin) {
             System.out.println("Busqueda secuencial sin columna de join");
-            if (schemes.containsKey(scheme)){
+            if (schemes.containsKey(scheme)) {
 
-                int indexOfArray = searchIndexOfArray(scheme, columnToSearch);
+                JSONObject schemeObject = new JSONObject(schemes.get(scheme));
+
+                int indexOfArray = searchIndexOfArray(columnToSearch, schemeObject);
+                JSONArray indexOfJoin = searchIndexOfJoin(schemeObject);
+
+                JSONArray attrSizeArray = schemeObject.getJSONArray("attrSize");
 
                 //tengo que buscar en que indice esta el dato a buscar
+
                 if (indexOfArray != -1) {
                     if (collections.containsKey(scheme)) {
+
+
                         System.out.println("El esquema tiene colecciones de datos");
                         Hashtable<String, String> collectionsOfScheme = collections.get(scheme);
-                        System.out.println(collectionsOfScheme);
-                        for (String key: collectionsOfScheme.keySet()) {
+
+
+                        for (String key : collectionsOfScheme.keySet()) {
                             JSONArray attr = new JSONArray(collectionsOfScheme.get(key));
 
-                            System.out.println("Searching "  + attr.get(indexOfArray));
-                            if (attr.get(indexOfArray).equals(dataToSearch)){
+                            System.out.println("Searching " + attr.get(indexOfArray));
+
+                            if (attr.get(indexOfArray).equals(dataToSearch)) {
                                 System.out.println("Elemento encontrado");
-                                result.put(collectionsOfScheme.get(key));
+                                String register = collectionsOfScheme.get(key);
+
+                                if (indexOfJoin.length() != 0){
+                                    System.out.println("Buscando joins");
+                                    System.out.println(indexOfJoin);
+
+                                    JSONArray attrObject = new JSONArray(register);
+                                    for (int i=0; i<indexOfJoin.length(); i++){
+                                        int join = indexOfJoin.getInt(i);
+                                        System.out.println("join " + attrSizeArray.get(join));
+                                        System.out.println(attrObject.getString(join));
+                                        String joinPk = attrObject.getString(join);
+                                        JSONObject joinAttr = searchAttr(joinPk, attrSizeArray.getString(join));
+                                        result.put(joinAttr.toString());
+                                    }
+                                }
+                                result.put(register);
+
                             }
                         }
                     }
@@ -461,10 +491,35 @@ public class Server {
 
         response.put("status", "failed");
         return response;
+
     }
 
-    private int searchIndexOfArray(String scheme, String columnToSearch) {
-        JSONObject schemeObject = new JSONObject(schemes.get(scheme));
+    private JSONObject searchAttr(String joinPk, String scheme) {
+        JSONObject result = new JSONObject();
+
+        Hashtable<String, String> schemeOfJoin = collections.get(scheme);
+        String colletionOfJoin = schemeOfJoin.get(joinPk);
+        result.put(scheme, colletionOfJoin);
+
+        return result;
+    }
+
+    private JSONArray searchIndexOfJoin(JSONObject schemeObject) {
+        JSONArray index = new JSONArray();
+        String attrType = schemeObject.get("attrType").toString();
+        JSONArray types = new JSONArray(attrType);
+
+        for (int i=0; i<types.length(); i++){
+            if (types.get(i).equals("join")){
+                index.put(i);
+            }
+        }
+
+        return index;
+
+    }
+
+    private int searchIndexOfArray(String columnToSearch, JSONObject schemeObject) {
         String attrName = schemeObject.get("attrName").toString();
         JSONArray schemeArray = new JSONArray(attrName);
 
@@ -476,6 +531,8 @@ public class Server {
 
         return -1;
     }
+
+
 
     private void createIndex() { }
 
