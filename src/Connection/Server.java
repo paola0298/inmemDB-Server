@@ -329,6 +329,7 @@ public class Server {
             //serializar collections
             ObjectMapper objectMapper = new ObjectMapper();
             try {
+
                 String serializedCollections = objectMapper.writeValueAsString(collections);
                 response.put("status", "success");
                 response.put("collections", serializedCollections);
@@ -424,11 +425,13 @@ public class Server {
 
         if (index && !searchByJoin) {
             System.out.println("Buscando por indice");
+            //TODO hacer busqueda por indice sin columna de join
         } else if (!index && searchByJoin) {
             System.out.println("Busqueda lineal de columna del join");
-
+            //TODO hacer busqueda por columna de join
 
         } else if (index && searchByJoin) {
+            //TODO hacer busqueda por indice en columna de join
             System.out.println("Busqueda por indice en columna del join");
         } else if (!index && !searchByJoin) {
             System.out.println("Busqueda secuencial sin columna de join");

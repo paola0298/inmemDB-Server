@@ -1,4 +1,4 @@
-package Structures;
+package Structures.BinaryTree;
 
 public class TreeNode<T> {
     private T value;
