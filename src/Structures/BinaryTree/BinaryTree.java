@@ -1,4 +1,6 @@
-package Structures;
+package Structures.BinaryTree;
+
+import Structures.BinaryTree.TreeNode;
 
 public class BinaryTree<T extends Comparable<? super T>> {
 
