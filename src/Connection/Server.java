@@ -104,8 +104,8 @@ public class Server {
                     sendResponse(response.toString(), con);
                     break;
 
-                case "querySchemes":
-                    response = querySchemes();
+                case "getUpdatedData":
+                    response = getUpdatedData();
                     sendResponse(response.toString(), con);
                     break;
 
@@ -174,15 +174,18 @@ public class Server {
 
     }
 
-    private JSONObject querySchemes() {
+    private JSONObject getUpdatedData() {
         JSONObject response = new JSONObject();
         String serializedSchemes;
+        String serializedCollections;
         ObjectMapper mapper = new ObjectMapper();
 
         try {
             serializedSchemes = mapper.writeValueAsString(schemes);
+            serializedCollections = mapper.writeValueAsString(collections);
             response.put("status", "success");
             response.put("schemes", serializedSchemes);
+            response.put("collections", serializedCollections);
 
         } catch (JsonProcessingException e) {
             response.put("status", "failed");
@@ -416,21 +419,21 @@ public class Server {
 
         JSONObject result;
 
-        String scheme = parametersObject.getString("scheme");
-        String columnToSearch = parametersObject.getString("searchBy");
-        Boolean index = parametersObject.getBoolean("index");
-        Boolean searchByJoin = parametersObject.getBoolean("searchByJoin");
-        String dataToSearch = parametersObject.getString("dataToSearch");
+        String scheme = parametersObject.getString("scheme"); // Esquema seleccionado
+        String columnToSearch = parametersObject.getString("searchBy"); // Atributo del esquema
+        Boolean index = parametersObject.getBoolean("index"); // Si se usa índice o no
+        Boolean searchByJoin = parametersObject.getBoolean("searchByJoin"); // Si es atributo seleccionado es de tipo join
+        String dataToSearch = parametersObject.getString("dataToSearch"); // Valor a buscar
 
 
         if (index && !searchByJoin) {
-            System.out.println("Buscando por indice");
             //TODO hacer busqueda por indice sin columna de join
+            System.out.println("Buscando por indice");
 
         } else if (!index && searchByJoin) {
             System.out.println("Busqueda lineal de columna del join");
-            //TODO hacer busqueda por columna de join
-            String joinName = parametersObject.getString("joinName");
+
+            String joinName = parametersObject.getString("joinName"); // Nombre del esquema con que se hace join
             result = searchByJoinColumn(scheme, columnToSearch, dataToSearch, joinName);
             return result;
 
