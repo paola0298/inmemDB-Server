@@ -2,9 +2,10 @@ package Structures;
 
 
 
-public class Entry implements Comparable<Entry> {
-    private int key;
-    private String value;
+
+public class Entry<k extends Comparable<? super k>, V> implements Comparable<Entry> {
+    private k key;
+    private V value;
     //para guardar cosas en el arbol la llave siempre va a ser un numero, si se van a guardar palabras o registros tipo String convierta los registros a integers antes de guardar los registros en el arbol
     public static int strToInt( String str ){
         int i = 0;
@@ -31,34 +32,42 @@ public class Entry implements Comparable<Entry> {
     @Override
     public String toString() {
         return "Entry{" +
-                "key=" + key +
-                ", value='" + value + '\'' +
+                "key=" + key.toString() +
+                ", value='" + value.toString() + '\'' +
                 '}';
     }
 
-    public Entry(int key, String value) {
+    public Entry(k key, V value) {
         this.key = key;
         this.value = value;
     }
 
-    public int getKey() {
+    public k getKey() {
         return key;
     }
 
-    public String getValue() {
+    public V getValue() {
         return value;
     }
 
 
     @Override
     public int compareTo(Entry that) {
-        if (this.key > that.key) {
-            return 1;
-        } else if (that.key > this.key) {
-            return -1;
-        } else {
-            return 0;
-        }
+        return this.key.compareTo((k) that.key);
+    }
+
+    public static void main(String[] args) {
+        SplayTree<Lecciones> splay = new SplayTree<>();
+
+        splay.insert(new Entry<Lecciones, Persona>(new Lecciones(23, "Espanol"), new Persona("hazel", 19)));
+        splay.insert(new Entry<Lecciones, Persona>(new Lecciones(45, "Ingles"), new Persona("Alejandro", 20)));
+        splay.insert(new Entry<Lecciones, Persona>(new Lecciones(67, "Ciencias"), new Persona("Johanna", 45)));
+        splay.insert(new Entry<Lecciones, Persona>(new Lecciones(9, "Fisica"), new Persona("Leo", 48)));
+
+        //System.out.println(((Persona) splay.find(new Lecciones(23, "Ciencias")).getValue()).getNombre());
+
+        splay.printSorted();
+
     }
 
 
