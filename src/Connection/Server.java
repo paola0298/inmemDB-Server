@@ -26,7 +26,7 @@ public class Server {
 
     private Hashtable<String, String> schemes = new Hashtable<>();
     //nombre del esquema, json con estructura del esquema
-    private Hashtable<String, Hashtable<String, String>> collections = new Hashtable<>();
+        private Hashtable<String, Hashtable<String, String>> collections = new Hashtable<>();
     // nombre del esquema, HashTable <id, jsonArray con atributos>
 
     /**
@@ -43,7 +43,7 @@ public class Server {
     /**
      * @return La conexion con el cliente
      */
-    public Socket clientConnection(){
+    private Socket clientConnection(){
         Socket con = null;
         try {
             con = serverSocket.accept();
@@ -56,15 +56,13 @@ public class Server {
     /**
      * @return El mensaje recibido del cliente
      */
-    public String receiveDataFromClient(Socket con){
+    private String receiveDataFromClient(Socket con){
         String actualMessage = "";
         try {
             DataInputStream inputStream = new DataInputStream(con.getInputStream());
             actualMessage = inputStream.readUTF();
-        } catch (EOFException ex) {
+        } catch (IOException ex) {
             System.out.println("Error reading stream " + ex.getMessage());
-        } catch (IOException e) {
-            System.out.println("Error reading stream " + e.getMessage());
         }
         return actualMessage;
     }
@@ -73,7 +71,7 @@ public class Server {
      * @param response Respuesta para el cliente
      * @param con Conexion con el cliente
      */
-    public void sendResponse(String response, Socket con){
+    private void sendResponse(String response, Socket con){
         try {
             DataOutputStream outputStream = new DataOutputStream(con.getOutputStream());
             outputStream.writeUTF(response);
@@ -85,7 +83,7 @@ public class Server {
     /**
      * Escucha las conexiones del cliente
      */
-    public void connectionListener(){
+    private void connectionListener(){
 
         while (this.isRunning){
             System.out.println("Esperando conexión");
@@ -95,7 +93,7 @@ public class Server {
             JSONObject msg = new JSONObject(receiveDataFromClient(con));
             JSONObject response;
 
-            String scheme = "";
+            String scheme;
 
             switch (msg.get("action").toString()) {
                 case "createScheme":
@@ -111,6 +109,11 @@ public class Server {
                     sendResponse(response.toString(), con);
                     break;
 
+                case "getSchemeData":
+                    response = getSchemeData(msg.getString("schemeName"));
+                    sendResponse(response.toString(), con);
+                    break;
+
                 case "deleteScheme":
                     scheme = msg.getString("scheme");
                     response = deleteScheme(scheme);
@@ -123,7 +126,9 @@ public class Server {
                     break;
 
                 case "insertData":
-                    scheme = msg.getString("type"); //esquema al que pertenece
+
+                    scheme = msg.getString("schemeName"); //esquema al que pertenece
+
                     JSONArray attr = msg.getJSONArray("attr"); //lista de atributos que se ingresaron
                     response = insertData(scheme, attr);
                     sendResponse(response.toString(), con);
@@ -182,6 +187,28 @@ public class Server {
         } catch (JsonProcessingException e) {
             response.put("status", "failed");
             response.put("error", "Serialize");
+        }
+
+        return response;
+    }
+
+    private JSONObject getSchemeData(String schemeName) {
+        JSONObject response = new JSONObject();
+        ObjectMapper mapper = new ObjectMapper();
+        String scheme = schemes.get(schemeName);
+        String serializedCollection;
+
+        try {
+            Hashtable<String, String> schemeCollection = collections.get(schemeName);
+            serializedCollection = mapper.writeValueAsString(schemeCollection);
+
+            response.put("status", "success");
+            response.put("scheme", scheme);
+            response.put("collection", serializedCollection);
+
+        } catch (IOException e) {
+            response.put("status", "failed");
+            response.put("error", "serialize");
         }
 
         return response;
@@ -302,6 +329,7 @@ public class Server {
             //serializar collections
             ObjectMapper objectMapper = new ObjectMapper();
             try {
+
                 String serializedCollections = objectMapper.writeValueAsString(collections);
                 response.put("status", "success");
                 response.put("collections", serializedCollections);
@@ -377,7 +405,6 @@ public class Server {
         "searchBy" : "campo de busqueda"
         "index" : true o false
         "tree" : arbol de busqueda  Esto se obtendria si index=true
-        "join" : "estructura con la que tiene join" o null
         "searchByJoin" : true o false  Si es true, entonces el campo de busqueda va a ser de
                                         la estructura del join
     }
@@ -398,29 +425,60 @@ public class Server {
 
         if (index && !searchByJoin) {
             System.out.println("Buscando por indice");
+            //TODO hacer busqueda por indice sin columna de join
         } else if (!index && searchByJoin) {
             System.out.println("Busqueda lineal de columna del join");
-        } else if (index && searchByJoin) {
-            System.out.println("Busqueda por indice en columna del join");
-        } else if (!index && !searchByJoin){
-            System.out.println("Busqueda secuencial sin columna de join");
-            if (schemes.containsKey(scheme)){
+            //TODO hacer busqueda por columna de join
 
-                int indexOfArray = searchIndexOfArray(scheme, columnToSearch);
+        } else if (index && searchByJoin) {
+            //TODO hacer busqueda por indice en columna de join
+            System.out.println("Busqueda por indice en columna del join");
+        } else if (!index && !searchByJoin) {
+            System.out.println("Busqueda secuencial sin columna de join");
+            if (schemes.containsKey(scheme)) {
+
+                JSONObject schemeObject = new JSONObject(schemes.get(scheme));
+
+                int indexOfArray = searchIndexOfArray(columnToSearch, schemeObject);
+                JSONArray indexOfJoin = searchIndexOfJoin(schemeObject);
+
+                JSONArray attrSizeArray = schemeObject.getJSONArray("attrSize");
 
                 //tengo que buscar en que indice esta el dato a buscar
+
                 if (indexOfArray != -1) {
                     if (collections.containsKey(scheme)) {
+
+
                         System.out.println("El esquema tiene colecciones de datos");
                         Hashtable<String, String> collectionsOfScheme = collections.get(scheme);
-                        System.out.println(collectionsOfScheme);
-                        for (String key: collectionsOfScheme.keySet()) {
+
+
+                        for (String key : collectionsOfScheme.keySet()) {
                             JSONArray attr = new JSONArray(collectionsOfScheme.get(key));
 
-                            System.out.println("Searching "  + attr.get(indexOfArray));
-                            if (attr.get(indexOfArray).equals(dataToSearch)){
+                            System.out.println("Searching " + attr.get(indexOfArray));
+
+                            if (attr.get(indexOfArray).equals(dataToSearch)) {
                                 System.out.println("Elemento encontrado");
-                                result.put(collectionsOfScheme.get(key));
+                                String register = collectionsOfScheme.get(key);
+
+                                if (indexOfJoin.length() != 0){
+                                    System.out.println("Buscando joins");
+                                    System.out.println(indexOfJoin);
+
+                                    JSONArray attrObject = new JSONArray(register);
+                                    for (int i=0; i<indexOfJoin.length(); i++){
+                                        int join = indexOfJoin.getInt(i);
+                                        System.out.println("join " + attrSizeArray.get(join));
+                                        System.out.println(attrObject.getString(join));
+                                        String joinPk = attrObject.getString(join);
+                                        JSONObject joinAttr = searchAttr(joinPk, attrSizeArray.getString(join));
+                                        result.put(joinAttr.toString());
+                                    }
+                                }
+                                result.put(register);
+
                             }
                         }
                     }
@@ -436,10 +494,35 @@ public class Server {
 
         response.put("status", "failed");
         return response;
+
     }
 
-    private int searchIndexOfArray(String scheme, String columnToSearch) {
-        JSONObject schemeObject = new JSONObject(schemes.get(scheme));
+    private JSONObject searchAttr(String joinPk, String scheme) {
+        JSONObject result = new JSONObject();
+
+        Hashtable<String, String> schemeOfJoin = collections.get(scheme);
+        String colletionOfJoin = schemeOfJoin.get(joinPk);
+        result.put(scheme, colletionOfJoin);
+
+        return result;
+    }
+
+    private JSONArray searchIndexOfJoin(JSONObject schemeObject) {
+        JSONArray index = new JSONArray();
+        String attrType = schemeObject.get("attrType").toString();
+        JSONArray types = new JSONArray(attrType);
+
+        for (int i=0; i<types.length(); i++){
+            if (types.get(i).equals("join")){
+                index.put(i);
+            }
+        }
+
+        return index;
+
+    }
+
+    private int searchIndexOfArray(String columnToSearch, JSONObject schemeObject) {
         String attrName = schemeObject.get("attrName").toString();
         JSONArray schemeArray = new JSONArray(attrName);
 
@@ -452,18 +535,23 @@ public class Server {
         return -1;
     }
 
+
+
     private void createIndex() { }
 
     private void deleteIndex() { }
 
+    private void stopServer() {
+        this.isRunning = false;
+    }
 
     public static void main(String[] args) {
+
         int port = 6307;
         Server server = new Server(port);
         server.connectionListener();
 
     }
-
 
     /*
 
