@@ -14,9 +14,9 @@ public class BinaryTree<T extends Comparable<? super T>> {
         this.root = add(element, this.root);
     }
 
-    private TreeNode<T> add(T element, TreeNode<T> current) {
+    private SplayNode<T> add(T element, SplayNode<T> current) {
         if (current == null) {
-            return new TreeNode<>(element);
+            return new SplayNode<>(element);
         }
         if (element.compareTo(current.getValue()) < 0) {
             current.setLeft(add(element, current.getLeft()));
@@ -30,7 +30,7 @@ public class BinaryTree<T extends Comparable<? super T>> {
         return this.contains(element, this.root);
     }
 
-    private boolean contains(T element, TreeNode<T> current){
+    private boolean contains(T element, SplayNode<T> current){
         if (current == null){
             return false;
         }
@@ -47,7 +47,7 @@ public class BinaryTree<T extends Comparable<? super T>> {
         return remove2(element, null, root);
     }
 
-    private boolean remove2(T element, TreeNode<T> parent, TreeNode<T> current) {
+    private boolean remove2(T element, SplayNode<T> parent, SplayNode<T> current) {
         if (current == null) {
             return false;
         }
@@ -80,8 +80,8 @@ public class BinaryTree<T extends Comparable<? super T>> {
 
         }
 
-    private boolean removeTreeNodeCase3(TreeNode<T> current, TreeNode<T> parent, boolean flag){
-        TreeNode<T> newChild = null;
+    private boolean removeTreeNodeCase3(SplayNode<T> current, SplayNode<T> parent, boolean flag){
+        SplayNode<T> newChild = null;
 
         if (flag){
             newChild = current.getLeft();
@@ -100,8 +100,8 @@ public class BinaryTree<T extends Comparable<? super T>> {
 
     }
 
-    private boolean removeTreeNodeCase2(TreeNode<T> current, TreeNode<T> parent) {
-        TreeNode<T> smaller = leftTraverse(current.getRight());
+    private boolean removeTreeNodeCase2(SplayNode<T> current, SplayNode<T> parent) {
+        SplayNode<T> smaller = leftTraverse(current.getRight());
         if (smaller != null){
             T value = smaller.getValue();
             remove2(smaller.getValue());
@@ -113,14 +113,14 @@ public class BinaryTree<T extends Comparable<? super T>> {
         return false;
     }
 
-    private TreeNode<T> leftTraverse(TreeNode<T> current) {
+    private SplayNode<T> leftTraverse(SplayNode<T> current) {
         if (current.getLeft() != null){
             return leftTraverse(current.getLeft());
         }
         return current;
     }
 
-    private boolean removeTreeNodeCase1(TreeNode<T> current, TreeNode<T> parent) {
+    private boolean removeTreeNodeCase1(SplayNode<T> current, SplayNode<T> parent) {
         if (parent.getLeft() == current) {
             parent.setLeft(null);
             return true;
@@ -135,7 +135,7 @@ public class BinaryTree<T extends Comparable<? super T>> {
     public void inorderTraverse(){
         inorderTraverse(this.root);
     }
-    private void inorderTraverse(TreeNode<T> root){
+    private void inorderTraverse(SplayNode<T> root){
         if (root != null) {
             inorderTraverse(root.getLeft());
             visitTreeNode(root);
@@ -146,7 +146,7 @@ public class BinaryTree<T extends Comparable<? super T>> {
     public void preorderTraverse(){
         preorderTraverse(this.root);
     }
-    private void preorderTraverse(TreeNode<T> root){
+    private void preorderTraverse(SplayNode<T> root){
         if (root != null){
             visitTreeNode(root);
             preorderTraverse(root.getLeft());
@@ -157,7 +157,7 @@ public class BinaryTree<T extends Comparable<? super T>> {
     public void postOrderTraverse(){
         postOrderTraverse(this.root);
     }
-    private void postOrderTraverse(TreeNode<T> root){
+    private void postOrderTraverse(SplayNode<T> root){
         if (root != null){
             postOrderTraverse(root.getLeft());
             postOrderTraverse(root.getRight());
@@ -165,7 +165,7 @@ public class BinaryTree<T extends Comparable<? super T>> {
         }
     }
 
-    public void visitTreeNode(TreeNode<T> TreeNode){
+    public void visitTreeNode(SplayNode<T> TreeNode){
         System.out.println(TreeNode.getValue());
     }
 
