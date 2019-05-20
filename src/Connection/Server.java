@@ -421,8 +421,8 @@ public class Server {
 
         String scheme = parametersObject.getString("scheme"); // Esquema seleccionado
         String columnToSearch = parametersObject.getString("searchBy"); // Atributo del esquema
-        Boolean index = parametersObject.getBoolean("index"); // Si se usa índice o no
-        Boolean searchByJoin = parametersObject.getBoolean("searchByJoin"); // Si es atributo seleccionado es de tipo join
+        boolean index = parametersObject.getBoolean("index"); // Si se usa índice o no
+        boolean searchByJoin = parametersObject.getBoolean("searchByJoin"); // Si es atributo seleccionado es de tipo join
         String dataToSearch = parametersObject.getString("dataToSearch"); // Valor a buscar
 
 
@@ -437,11 +437,11 @@ public class Server {
             result = searchByJoinColumn(scheme, columnToSearch, dataToSearch, joinName);
             return result;
 
-        } else if (index && searchByJoin) {
+        } else if (index) {
             //TODO hacer busqueda por indice en columna de join
             System.out.println("Busqueda por indice en columna del join");
 
-        } else if (!index && !searchByJoin) {
+        } else {
             System.out.println("Busqueda secuencial sin columna de join");
 
             result = sequentialSearch1(scheme, columnToSearch, dataToSearch);

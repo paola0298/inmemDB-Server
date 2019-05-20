@@ -1,188 +1,131 @@
 package Structures.BinaryTree;
 
-import Structures.BinaryTree.TreeNode;
-
-public class BinaryTree<T extends Comparable<? super T>> {
+public class BinaryTree<K extends Comparable<? super K>, V> {
 
     private int size;
-    private TreeNode<T> root;
+    private Node<K, V> root;
 
     public BinaryTree() {
         this.size = 0;
         this.root = null;
     }
 
-    public void add(T element) {
-        this.root = add(element, this.root);
+    public void insert(K key, V value) {
+        this.root = insert(key, value, this.root);
     }
 
-    private TreeNode<T> add(T element, TreeNode<T> current) {
+    private Node<K, V> insert(K key, V value, Node<K, V> current) {
         if (current == null) {
-            return new TreeNode<>(element);
-        }
-        if (element.compareTo(current.getValue()) < 0) {
-            current.setLeft(add(element, current.getLeft()));
-        } else if (element.compareTo(current.getValue()) > 0){
-            current.setRight(add(element, current.getRight()));
+            this.size++;
+            return new Node<>(key, value);
+        } else if (current.getKey().compareTo(key) < 0) {
+            current.setRight(insert(key, value, current.getRight()));
+        } else if (current.getKey().compareTo(key) > 0) {
+            current.setLeft(insert(key, value, current.getLeft()));
         }
         return current;
     }
 
-    public boolean contains(T element){
-        return this.contains(element, this.root);
+    public V search(K key) {
+        return search(key, this.root);
     }
 
-    private boolean contains(T element, TreeNode<T> current){
-        if (current == null){
-            return false;
-        }
-        if (element.compareTo(current.getValue()) < 0){
-            return contains(element, current.getLeft());
-        } else if (element.compareTo(current.getValue()) > 0){
-            return contains(element, current.getRight());
-        } else {
-            return true;
-        }
-    }
-
-    public boolean remove2(T element) {
-        return remove2(element, null, root);
-    }
-
-    private boolean remove2(T element, TreeNode<T> parent, TreeNode<T> current) {
+    private V search(K key, Node<K, V> current) {
         if (current == null) {
-            return false;
+            System.out.println("Node " + key + " not found!");
+            return null;
+        } else if (current.getKey().compareTo(key) < 0) {
+            return search(key, current.getRight());
+        } else if (current.getKey().compareTo(key) > 0) {
+            return search(key, current.getLeft());
         }
+        System.out.println("Node " + current.getValue() + " found!");
+        return current.getValue();
+    }
 
-        if (element.compareTo(current.getValue()) < 0) {
-            return remove2(element, current, current.getLeft());
-        }
+    public void remove(K key) {
+        this.root = remove(key, this.root);
 
-        if (element.compareTo(current.getValue()) > 0) {
-            return remove2(element, current, current.getRight());
+    }
+
+    private Node<K, V> remove(K key, Node<K, V> current) {
+        if (current == null) {
+            return null;
+        } else if (current.getKey().compareTo(key) < 0) {
+            current.setRight(remove(key, current.getRight()));
+        } else if (current.getKey().compareTo(key) > 0) {
+            current.setLeft(remove(key, current.getLeft()));
         } else {
-            if (current.getRight() == null && current.getLeft() == null) {
-                return removeTreeNodeCase1(current, parent);
-            } else if (current.getLeft() != null && current.getRight() != null) {
-                    // dos hijos
-                return removeTreeNodeCase2(current, parent);
-
-            } else if (current.getRight() != null && current.getLeft() == null) {
-                // solo hijo derecho
-                return removeTreeNodeCase3(current, parent, false);
+            if (current.getLeft() == null) {
+                return current.getRight();
+            } else if (current.getRight() == null) {
+                return current.getLeft();
             }
-
-            else if (current.getLeft() != null && current.getRight() == null) {
-                // solo hijo izquierdo
-                return removeTreeNodeCase3(current, parent, true);
-            }
-
-            return false;
-            }
-
-        }
-
-    private boolean removeTreeNodeCase3(TreeNode<T> current, TreeNode<T> parent, boolean flag){
-        TreeNode<T> newChild = null;
-
-        if (flag){
-            newChild = current.getLeft();
-        } else{
-            newChild = current.getRight();
-        }
-        if (parent.getValue().compareTo(current.getValue())<0){
-            parent.setRight(newChild);
-        }else {
-            parent.setLeft(newChild);
-        }
-        current.setRight(null);
-        current.setLeft(null);
-        return true;
-
-
-    }
-
-    private boolean removeTreeNodeCase2(TreeNode<T> current, TreeNode<T> parent) {
-        TreeNode<T> smaller = leftTraverse(current.getRight());
-        if (smaller != null){
-            T value = smaller.getValue();
-            remove2(smaller.getValue());
-
-            current.setValue(value);
-
-            return true;
-        }
-        return false;
-    }
-
-    private TreeNode<T> leftTraverse(TreeNode<T> current) {
-        if (current.getLeft() != null){
-            return leftTraverse(current.getLeft());
+            Node<K, V> smallest = leftTraverse(current.getRight());
+            K currentKey = current.getKey();
+            current.setKey(smallest.getKey());
+            current.setValue(smallest.getValue());
+            smallest.setKey(currentKey);
+            current.setRight(remove(currentKey, current.getRight()));
+            this.size--;
         }
         return current;
     }
 
-    private boolean removeTreeNodeCase1(TreeNode<T> current, TreeNode<T> parent) {
-        if (parent.getLeft() == current) {
-            parent.setLeft(null);
-            return true;
-        } else if (parent.getRight() == current) {
-            parent.setRight(null);
-            return true;
+    private Node<K, V> leftTraverse(Node<K, V> current) {
+        if (current.getLeft() != null) return leftTraverse(current.getLeft());
+        else return current;
+    }
+
+    public int getSize() {
+        return this.size;
+    }
+
+    public void inOrderTraverse() {
+        inOrderTraverse(this.root);
+    }
+
+    private void inOrderTraverse(Node<K, V> current) {
+        if (current != null) {
+            inOrderTraverse(current.getLeft());
+            System.out.println("[" + current.getValue() + "]");
+            inOrderTraverse(current.getRight());
         }
-        return false;
-    }
-
-
-    public void inorderTraverse(){
-        inorderTraverse(this.root);
-    }
-    private void inorderTraverse(TreeNode<T> root){
-        if (root != null) {
-            inorderTraverse(root.getLeft());
-            visitTreeNode(root);
-            inorderTraverse(root.getRight());
-        }
-    }
-
-    public void preorderTraverse(){
-        preorderTraverse(this.root);
-    }
-    private void preorderTraverse(TreeNode<T> root){
-        if (root != null){
-            visitTreeNode(root);
-            preorderTraverse(root.getLeft());
-            preorderTraverse(root.getRight());
-        }
-    }
-
-    public void postOrderTraverse(){
-        postOrderTraverse(this.root);
-    }
-    private void postOrderTraverse(TreeNode<T> root){
-        if (root != null){
-            postOrderTraverse(root.getLeft());
-            postOrderTraverse(root.getRight());
-            visitTreeNode(root);
-        }
-    }
-
-    public void visitTreeNode(TreeNode<T> TreeNode){
-        System.out.println(TreeNode.getValue());
-    }
-
-    public boolean isEmpty(){
-        return this.root == null;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        return builder.toString();
     }
 
     public static void main(String[] args) {
+        /*
+                 15
+               /   \
+              4     23
+               \    /
+               7   19
+         */
 
 
+        BinaryTree<Integer, String> binaryTree = new BinaryTree<>();
+        System.out.println("Insertando elementos");
+        binaryTree.insert(15, "15");
+        binaryTree.insert(4, "4");
+        binaryTree.insert(7, "7");
+        binaryTree.insert(23, "23");
+        binaryTree.insert(19, "19");
+        System.out.println("Elementos insertados");
+
+        binaryTree.inOrderTraverse();
+
+        /*
+        4 7 15 19 23
+         */
+
+        binaryTree.remove(15);
+
+        System.out.println("\n");
+        binaryTree.inOrderTraverse();
+
+        /*
+        4 7 19 23
+         */
     }
+
 }
