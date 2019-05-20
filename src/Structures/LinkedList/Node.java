@@ -1,4 +1,4 @@
-package Structures;
+package Structures.LinkedList;
 
 public class Node<T> {
     private T value;

@@ -1,19 +1,19 @@
-package Structures;
+package Structures.BTree;
     public class BTree<Key extends Comparable<Key>, Value>  {
-        // max children per B-tree node = M-1
+        // max children per B-tree BTreenode = M-1
         // (must be even and greater than 2)
         private static final int M = 4;
 
-        private Node root;       // root of the B-tree
+        private BTreeNode root;       // root of the B-tree
         private int height;      // height of the B-tree
         private int n;           // number of key-value pairs in the B-tree
 
-        private static final class Node {
+        private static final class BTreeNode {
             private int m;                             // number of children
             private Entry[] children = new Entry[M];   // the array of children
 
-            // create a node with k children
-            private Node(int k) {
+            // create a BTreenode with k children
+            private BTreeNode(int k) {
                 m = k;
             }
         }
@@ -23,8 +23,8 @@ package Structures;
         private static class Entry {
             private Comparable key;
             private final Object val;
-            private Node next;     // helper field to iterate over array entries
-            public Entry(Comparable key, Object val, Node next) {
+            private BTreeNode next;     // helper field to iterate over array entries
+            public Entry(Comparable key, Object val, BTreeNode next) {
                 this.key  = key;
                 this.val  = val;
                 this.next = next;
@@ -40,7 +40,7 @@ package Structures;
          * Initializes an empty B-tree.
          */
         public BTree() {
-            root = new Node(0);
+            root = new BTreeNode(0);
         }
 
         /**
@@ -82,17 +82,17 @@ package Structures;
             return search(root, key, height);
         }
 
-        private Value search(Node x, Key key, int ht) {
+        private Value search(BTreeNode x, Key key, int ht) {
             Entry[] children = x.children;
 
-            // external node
+            // external BTreenode
             if (ht == 0) {
                 for (int j = 0; j < x.m; j++) {
                     if (eq(key, children[j].key)) return (Value) children[j].val;
                 }
             }
 
-            // internal node
+            // internal BTreenode
             else {
                 for (int j = 0; j < x.m; j++) {
                     if (j+1 == x.m || less(key, children[j+1].key))
@@ -114,34 +114,34 @@ package Structures;
          */
         public void put(Key key, Value val) {
             if (key == null) throw new IllegalArgumentException("argument key to put() is null");
-            Node u = insert(root, key, val, height);
+            BTreeNode u = insert(root, key, val, height);
             n++;
             if (u == null) return;
 
             // need to split root
-            Node t = new Node(2);
+            BTreeNode t = new BTreeNode(2);
             t.children[0] = new Entry(root.children[0].key, null, root);
             t.children[1] = new Entry(u.children[0].key, null, u);
             root = t;
             height++;
         }
 
-        private Node insert(Node h, Key key, Value val, int ht) {
+        private BTreeNode insert(BTreeNode h, Key key, Value val, int ht) {
             int j;
             Entry t = new Entry(key, val, null);
 
-            // external node
+            // external BTreenode
             if (ht == 0) {
                 for (j = 0; j < h.m; j++) {
                     if (less(key, h.children[j].key)) break;
                 }
             }
 
-            // internal node
+            // internal BTreenode
             else {
                 for (j = 0; j < h.m; j++) {
                     if ((j+1 == h.m) || less(key, h.children[j+1].key)) {
-                        Node u = insert(h.children[j++].next, key, val, ht-1);
+                        BTreeNode u = insert(h.children[j++].next, key, val, ht-1);
                         if (u == null) return null;
                         t.key = u.children[0].key;
                         t.next = u;
@@ -158,9 +158,9 @@ package Structures;
             else         return split(h);
         }
 
-        // split node in half
-        private Node split(Node h) {
-            Node t = new Node(M/2);
+        // split BTreenode in half
+        private BTreeNode split(BTreeNode h) {
+            BTreeNode t = new BTreeNode(M/2);
             h.m = M/2;
             for (int j = 0; j < M/2; j++)
                 t.children[j] = h.children[M/2+j];
@@ -176,7 +176,7 @@ package Structures;
             return toString(root, height, "") + "\n";
         }
 
-        private String toString(Node h, int ht, String indent) {
+        private String toString(BTreeNode h, int ht, String indent) {
             StringBuilder s = new StringBuilder();
             Entry[] children = h.children;
 

@@ -1,6 +1,4 @@
-package Structures;
-
-
+package Structures.SplayTree;
 
 
 public class Entry<k extends Comparable<? super k>, V> implements Comparable<Entry> {
@@ -57,16 +55,16 @@ public class Entry<k extends Comparable<? super k>, V> implements Comparable<Ent
     }
 
     public static void main(String[] args) {
-        SplayTree<Lecciones> splay = new SplayTree<>();
-
-        splay.insert(new Entry<Lecciones, Persona>(new Lecciones(23, "Espanol"), new Persona("hazel", 19)));
-        splay.insert(new Entry<Lecciones, Persona>(new Lecciones(45, "Ingles"), new Persona("Alejandro", 20)));
-        splay.insert(new Entry<Lecciones, Persona>(new Lecciones(67, "Ciencias"), new Persona("Johanna", 45)));
-        splay.insert(new Entry<Lecciones, Persona>(new Lecciones(9, "Fisica"), new Persona("Leo", 48)));
-
-        //System.out.println(((Persona) splay.find(new Lecciones(23, "Ciencias")).getValue()).getNombre());
-
-        splay.printSorted();
+//        SplayTree<Lecciones> splay = new SplayTree<>();
+//
+//        splay.insert(new Entry<Lecciones, Persona>(new Lecciones(23, "Espanol"), new Persona("hazel", 19)));
+//        splay.insert(new Entry<Lecciones, Persona>(new Lecciones(45, "Ingles"), new Persona("Alejandro", 20)));
+//        splay.insert(new Entry<Lecciones, Persona>(new Lecciones(67, "Ciencias"), new Persona("Johanna", 45)));
+//        splay.insert(new Entry<Lecciones, Persona>(new Lecciones(9, "Fisica"), new Persona("Leo", 48)));
+//
+//        //System.out.println(((Persona) splay.find(new Lecciones(23, "Ciencias")).getValue()).getNombre());
+//
+//        splay.printSorted();
 
     }
 

@@ -1,4 +1,4 @@
-package Structures;
+package Structures.SplayTree;
 
 public class SplayTree<k extends Comparable<? super k>>{
 

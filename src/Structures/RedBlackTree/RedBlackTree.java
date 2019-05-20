@@ -1,4 +1,4 @@
-package Structures;
+package Structures.RedBlackTree;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,7 +54,7 @@ public class RedBlackTree<K extends Comparable<K>,V> {
 
     // @param: x, The node which the leftRotate is to be performed on.
     // Updates the numLeft & numRight values affected by leftRotate.
-    private void leftRotateFixup(RedBlackNode x){
+    private void leftRotateFixup(RedBlackNode<K, V> x){
 
         // Case 1: Only x, x.right and x.right.right always are not nil.
         if (isNil(x.left) && isNil(x.right.left)){
@@ -125,7 +125,7 @@ public class RedBlackTree<K extends Comparable<K>,V> {
 
     // @param: y, the node around which the righRotate is to be performed.
     // Updates the numLeft and numRight values affected by the rotate
-    private void rightRotateFixup(RedBlackNode y){
+    private void rightRotateFixup(RedBlackNode<K, V> y){
 
         // Case 1: Only y, y.left and y.left.left exists.
         if (isNil(y.right) && isNil(y.left.right)){
@@ -672,7 +672,7 @@ public class RedBlackTree<K extends Comparable<K>,V> {
 
     // @param: node, the RedBlackNode we must check to see whether it's nil
     // @return: return's true of node is nil and false otherwise
-    private boolean isNil(RedBlackNode node){
+    private boolean isNil(RedBlackNode<K, V> node){
 
         // return appropriate value
         return node == nil;
@@ -691,12 +691,12 @@ public class RedBlackTree<K extends Comparable<K>,V> {
     }// end size()
 
     public static void main(String [] args){
-        RedBlackTree prueba = new RedBlackTree();
+        RedBlackTree<Integer, Integer> prueba = new RedBlackTree<>();
         int a = 4;
         prueba.insert(a, 10);
         prueba.insert(6,11);
         prueba.insert(8,12);
-        System.out.println("Value"+prueba.search(a).getValue()+"Key"+prueba.search(a).getKey() );
+        System.out.println("Value "+prueba.search(a).getValue()+" Key "+prueba.search(a).getKey() );
 
 
         prueba.remove(prueba.search(a));
