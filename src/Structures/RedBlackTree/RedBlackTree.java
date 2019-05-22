@@ -616,6 +616,11 @@ public class RedBlackTree<K extends Comparable<K>,V>  extends AbstractTree<K, V>
     }
 
     @Override
+    public void show()  {
+        System.out.println("No implemented");
+    }
+
+    @Override
     public StructureType getType() {
         return StructureType.REDBLACK;
     }

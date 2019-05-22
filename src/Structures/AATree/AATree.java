@@ -121,6 +121,12 @@ public class AATree<K extends Comparable<? super K>, V> extends AbstractTree<K, 
     }
 
     @Override
+    public void show() {
+        System.out.println("inorder");
+        inorder();
+    }
+
+    @Override
     public StructureType getType() {
         return StructureType.AA;
     }

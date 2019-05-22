@@ -240,12 +240,18 @@ public class BTree<K extends Comparable<K>, V> extends AbstractTree<K, V> {
             remove(key,this.root, height);
         }
 
-    @Override
-    public StructureType getType() {
-        return StructureType.B;
-    }
+        @Override
+        public void show() {
+            System.out.println("toString");
+            toString();
+        }
 
-    private void remove(K key, Node root, int ht){
+        @Override
+        public StructureType getType() {
+            return StructureType.B;
+        }
+
+        private void remove(K key, Node root, int ht){
             Entry[] children = root.children;
 
             // external node

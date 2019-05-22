@@ -52,6 +52,12 @@ public class BinaryTree<K extends Comparable<? super K>, V> extends AbstractTree
     }
 
     @Override
+    public void show() {
+        System.out.println("inorder");
+        inOrderTraverse();
+    }
+
+    @Override
     public StructureType getType() {
         return StructureType.BINARY;
     }

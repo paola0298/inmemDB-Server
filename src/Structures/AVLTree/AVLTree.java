@@ -171,6 +171,12 @@ public class AVLTree<K extends Comparable<? super K>, V> extends AbstractTree<K,
     }
 
     @Override
+    public void show() {
+        System.out.println("Preorder");
+        preOrder();
+    }
+
+    @Override
     public StructureType getType() {
         return StructureType.AVL;
     }
