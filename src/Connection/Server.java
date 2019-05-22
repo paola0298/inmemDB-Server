@@ -71,7 +71,7 @@ public class Server {
         String actualMessage = "";
         try {
             DataInputStream inputStream = new DataInputStream(con.getInputStream());
-            actualMessage = inputStream.readUTF();
+            actualMessage = EncodeDecode.descifrarBase64(inputStream.readUTF());
         } catch (IOException ex) {
             System.out.println("Error reading stream " + ex.getMessage());
         }
@@ -85,7 +85,8 @@ public class Server {
     private void sendResponse(String response, Socket con){
         try {
             DataOutputStream outputStream = new DataOutputStream(con.getOutputStream());
-            outputStream.writeUTF(response);
+//            outputStream.writeUTF(response);
+            outputStream.writeUTF(EncodeDecode.cifrarBase64(response));
         } catch (IOException e) {
             System.out.println("Error writing stream " + e.getMessage());
         }
@@ -222,7 +223,7 @@ public class Server {
 
     /**
      * Este método es utilizado parta obtener los datos referentes a los esquemas
-     * @param schemeName
+     * @param schemeName Nombre del esquema de donde sacar los datos.
      * @return retorna un JSONObject con una respuesta según el estado de la creación del nuevo esquema
      */
     private JSONObject getSchemeData(String schemeName) {
@@ -817,8 +818,8 @@ public class Server {
         return -1;
     }
 
-    /**Se va a buscar un Atributo de un esquema
-     *
+    /**
+     * Se va a buscar un Atributo de un esquema
      * @param joinPk
      * @param scheme
      * @return
