@@ -5,15 +5,30 @@ public class BinaryTree<K extends Comparable<? super K>, V> {
     private int size;
     private Node<K, V> root;
 
+    /**
+     * Constructor del árbol Binary Tree
+     */
     public BinaryTree() {
         this.size = 0;
         this.root = null;
     }
 
+    /**
+     * Llamada del método que se encarga de hacer inserciones en el árbol
+     * @param key
+     * @param value
+     */
     public void insert(K key, V value) {
         this.root = insert(key, value, this.root);
     }
 
+    /**
+     * Este método es el que se encarga de realizar la inserción en el árbol
+     * @param key
+     * @param value
+     * @param current
+     * @return la raíz con el valor deseado ya agregado
+     */
     private Node<K, V> insert(K key, V value, Node<K, V> current) {
         if (current == null) {
             this.size++;
@@ -26,10 +41,21 @@ public class BinaryTree<K extends Comparable<? super K>, V> {
         return current;
     }
 
+    /**
+     * Método que se encarga de llamar al método que realiza la búsqueda
+     * @param key
+     * @return el value del nodo buscado
+     */
     public V search(K key) {
         return search(key, this.root);
     }
 
+    /**
+     * Método que se encarga de realizar la búsqueda
+     * @param key
+     * @param current
+     * @return el nodo buscado
+     */
     private V search(K key, Node<K, V> current) {
         if (current == null) {
             System.out.println("Node " + key + " not found!");
@@ -43,11 +69,21 @@ public class BinaryTree<K extends Comparable<? super K>, V> {
         return current.getValue();
     }
 
+    /**
+     * Método que se encarga de llamar al método que va a eliminar un valor específico
+     * @param key
+     */
     public void remove(K key) {
         this.root = remove(key, this.root);
 
     }
 
+    /**
+     * Método que se encarga de eliminar un valor específico
+     * @param key
+     * @param current
+     * @return la raíz del nodo sin el valor especificado
+     */
     private Node<K, V> remove(K key, Node<K, V> current) {
         if (current == null) {
             return null;
@@ -71,6 +107,7 @@ public class BinaryTree<K extends Comparable<? super K>, V> {
         }
         return current;
     }
+
 
     private Node<K, V> leftTraverse(Node<K, V> current) {
         if (current.getLeft() != null) return leftTraverse(current.getLeft());
