@@ -10,6 +10,9 @@ public class LinkedList<T> {
     private int position;
     private int size;
 
+    /**
+     * Constructor de la lista enlazada
+     */
     public LinkedList() {
         this.head = new Node<>();
         this.current = this.head;
@@ -34,6 +37,10 @@ public class LinkedList<T> {
 
     }
 
+    /**
+     * Se encarga de insertar un elemento nuevo al incio de la lista
+     * @param element
+     */
     public void insertFirst(T element){
         Node<T> newNode = new Node<>(element);
         newNode.setNext(this.head.getNext());
@@ -41,6 +48,10 @@ public class LinkedList<T> {
         this.size++;
     }
 
+    /**
+     * Este método se encarga de añadir elementos al final de la lista
+     * @param element
+     */
     public void append(T element) {
         //siempre se pega al final de la lista
         Node newNode = new Node(element);
@@ -49,6 +60,9 @@ public class LinkedList<T> {
         this.size++;
     }
 
+    /**
+     * Este método se encarga de eliminar datos de la lista
+     */
     public void remove() {
         //verificar que la lista no está vacía
         if ((this.head == this.current) && (this.head == this.tail)){
@@ -76,6 +90,9 @@ public class LinkedList<T> {
         this.size--;
     }
 
+    /**
+     * Este método se encarga de vaciar la lista
+     */
     public void clear() {
         this.head = this.tail = this.current = new Node();
         this.position = -1;
@@ -90,6 +107,10 @@ public class LinkedList<T> {
         return this.size;
     }
 
+    /**
+     * Método que se encarga de avanzar al siguietne nodo en la lista
+     * @return valor boolean sobre si se pudo avanzar
+     */
     public boolean next() {
         if (this.current == this.tail) {
             System.out.println("Actualmente en último nodo, no se puede avanzar");
@@ -100,6 +121,10 @@ public class LinkedList<T> {
         return true;
     }
 
+    /**
+     * Método que se encarga de retroceder los nodos en la lista
+     * @return el valor boolean sobre si se pudo retroceder
+     */
     public boolean previous() {
         if (this.current == this.head) {
             System.out.println("Actualmente en primer nodo, no se puede retroceder");
@@ -129,6 +154,10 @@ public class LinkedList<T> {
         this.position = this.size - 1;
     }
 
+    /**
+     * Método que se encarga de ir a la posición ingresada de la lista
+     * @param pos
+     */
     public void goToPos(int pos) {
         if (pos < 0 || pos >= this.size) {
             System.out.println("Posición inválida");
@@ -145,6 +174,11 @@ public class LinkedList<T> {
         }
     }
 
+    /**
+     * Este método devuelve la posición determinada de un elemento dado
+     * @param element
+     * @return valor entero de la posición
+     */
     public int getPositionOfElement(T element) {
         Node tempNode = this.head;
         int position = -1;
@@ -158,6 +192,10 @@ public class LinkedList<T> {
         return -1;
     }
 
+    /**
+     * @param position
+     * @return  Este método retorna el elemento de la posición dada
+     */
     public T getElementByPos(int position){
         goToPos(position);
         return this.current.getValue();
