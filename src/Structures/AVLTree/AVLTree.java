@@ -1,7 +1,10 @@
 package Structures.AVLTree;
 
 
-public class AVLTree<K extends Comparable<? super K>, V> {
+import Structures.AbstractTree.AbstractTree;
+import Structures.AbstractTree.StructureType;
+
+public class AVLTree<K extends Comparable<? super K>, V> extends AbstractTree<K, V> {
 
     private AVLNode<K,V> root;
 
@@ -90,8 +93,8 @@ public class AVLTree<K extends Comparable<? super K>, V> {
      * Sobrecarga para facilitar método recursivo
      * @param key dragon a insertar
      */
-    public void insert(K key, V value) {
-        this.root=insert(this.root, key, value);
+    public void add(K key, V value) {
+        this.root=add(this.root, key, value);
     }
 
     /**
@@ -102,7 +105,7 @@ public class AVLTree<K extends Comparable<? super K>, V> {
      * @param key el dragon a insertar
      * @return un nodo modificado para comunicarse entre recursiones
      */
-    private AVLNode<K, V> insert(AVLNode<K, V> node, K key, V value)
+    private AVLNode<K, V> add(AVLNode<K, V> node, K key, V value)
     {
         /* 1. Perform the normal BST rotation */
         if (node == null){
@@ -110,9 +113,9 @@ public class AVLTree<K extends Comparable<? super K>, V> {
         }
 
         if (key.compareTo(node.getKey()) < 0)
-            node.setLeft(insert(node.getLeft(), key, value));
+            node.setLeft(add(node.getLeft(), key, value));
         else if (key.compareTo(node.getKey()) > 0)
-            node.setRight(insert(node.getRight(), key, value));
+            node.setRight(add(node.getRight(), key, value));
         else // Equal keys not allowed
             return node;
 
@@ -163,12 +166,17 @@ public class AVLTree<K extends Comparable<? super K>, V> {
         return current;
     }
 
-    public void delete(K key){
+    public void remove(K key){
         this.root = deleteNode(this.root, key);
     }
 
+    @Override
+    public StructureType getType() {
+        return StructureType.AVL;
+    }
+
     private AVLNode<K, V> deleteNode(AVLNode<K, V> root, K key) {
-        // STEP 1: PERFORM STANDARD BST DELETE
+        // STEP 1: PERFORM STANDARD BST remove
         if (root == null)
             return root;
 
@@ -216,7 +224,7 @@ public class AVLTree<K extends Comparable<? super K>, V> {
                 // Copy the inorder successor's data to this node
                 root.setKey(temp.getKey());
 
-                // Delete the inorder successor
+                // remove the inorder successor
                 root.setRight(deleteNode(root.getRight(), temp.getKey()));
             }
         }
@@ -312,15 +320,15 @@ public class AVLTree<K extends Comparable<? super K>, V> {
 
         /* Constructing tree given in the above figure */
 
-        tree.insert(9, 900);
-        tree.insert(5, 500);
-        tree.insert(10, 1000);
-        tree.insert(0, 1);
-        tree.insert(6, 600);
-        tree.insert(11, 1100);
-        tree.insert(-1, -100);
-        tree.insert(1, 100);
-        tree.insert(2, 200);
+        tree.add(9, 900);
+        tree.add(5, 500);
+        tree.add(10, 1000);
+        tree.add(0, 1);
+        tree.add(6, 600);
+        tree.add(11, 1100);
+        tree.add(-1, -100);
+        tree.add(1, 100);
+        tree.add(2, 200);
 
         tree.search(2);
 
@@ -338,7 +346,7 @@ public class AVLTree<K extends Comparable<? super K>, V> {
                 "constructed tree is : ");
         tree.preOrder();
 
-        tree.delete(10);
+        tree.remove(10);
 
         /* The AVL Tree after deletion of 10
         1

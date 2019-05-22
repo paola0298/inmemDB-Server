@@ -1,6 +1,9 @@
 package Structures.BinaryTree;
 
-public class BinaryTree<K extends Comparable<? super K>, V> {
+import Structures.AbstractTree.AbstractTree;
+import Structures.AbstractTree.StructureType;
+
+public class BinaryTree<K extends Comparable<? super K>, V> extends AbstractTree<K, V> {
 
     private int size;
     private Node<K, V> root;
@@ -10,18 +13,18 @@ public class BinaryTree<K extends Comparable<? super K>, V> {
         this.root = null;
     }
 
-    public void insert(K key, V value) {
-        this.root = insert(key, value, this.root);
+    public void add(K key, V value) {
+        this.root = add(key, value, this.root);
     }
 
-    private Node<K, V> insert(K key, V value, Node<K, V> current) {
+    private Node<K, V> add(K key, V value, Node<K, V> current) {
         if (current == null) {
             this.size++;
             return new Node<>(key, value);
         } else if (current.getKey().compareTo(key) < 0) {
-            current.setRight(insert(key, value, current.getRight()));
+            current.setRight(add(key, value, current.getRight()));
         } else if (current.getKey().compareTo(key) > 0) {
-            current.setLeft(insert(key, value, current.getLeft()));
+            current.setLeft(add(key, value, current.getLeft()));
         }
         return current;
     }
@@ -46,6 +49,11 @@ public class BinaryTree<K extends Comparable<? super K>, V> {
     public void remove(K key) {
         this.root = remove(key, this.root);
 
+    }
+
+    @Override
+    public StructureType getType() {
+        return StructureType.BINARY;
     }
 
     private Node<K, V> remove(K key, Node<K, V> current) {
@@ -105,11 +113,11 @@ public class BinaryTree<K extends Comparable<? super K>, V> {
 
         BinaryTree<Integer, String> binaryTree = new BinaryTree<>();
         System.out.println("Insertando elementos");
-        binaryTree.insert(15, "15");
-        binaryTree.insert(4, "4");
-        binaryTree.insert(7, "7");
-        binaryTree.insert(23, "23");
-        binaryTree.insert(19, "19");
+        binaryTree.add(15, "15");
+        binaryTree.add(4, "4");
+        binaryTree.add(7, "7");
+        binaryTree.add(23, "23");
+        binaryTree.add(19, "19");
         System.out.println("Elementos insertados");
 
         binaryTree.inOrderTraverse();

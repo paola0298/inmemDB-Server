@@ -1,5 +1,9 @@
 package Structures.BTree;
-    public class BTree<Key extends Comparable<Key>, Value>  {
+
+import Structures.AbstractTree.AbstractTree;
+import Structures.AbstractTree.StructureType;
+
+public class BTree<K extends Comparable<K>, V> extends AbstractTree<K, V> {
         // max children per B-tree node = M-1
         // (must be even and greater than 2)
         private static final int M = 4;
@@ -102,18 +106,18 @@ package Structures.BTree;
          *         and {@code null} if the key is not in the symbol table
          * @throws IllegalArgumentException if {@code key} is {@code null}
          */
-        public Value search(Key key) {
+        public V search(K key) {
             if (key == null) throw new IllegalArgumentException("argument to get() is null");
             return search(root, key, height);
         }
 
-        private Value search(Node x, Key key, int ht) {
+        private V search(Node x, K key, int ht) {
             Entry[] children = x.children;
 
             // external node
             if (ht == 0) {
                 for (int j = 0; j < x.m; j++) {
-                    if (eq(key, children[j].key)) return  (Value) children[j].getVal();
+                    if (eq(key, children[j].key)) return  (V) children[j].getVal();
                 }
             }
 
@@ -137,8 +141,8 @@ package Structures.BTree;
          * @param  val the value
          * @throws IllegalArgumentException if {@code key} is {@code null}
          */
-        public void put(Key key, Value val) {
-            if (key == null) throw new IllegalArgumentException("argument key to put() is null");
+        public void add(K key, V val) {
+            if (key == null) throw new IllegalArgumentException("argument key to add() is null");
             Node u = insert(root, key, val, height);
             n++;
             if (u == null) return;
@@ -152,7 +156,7 @@ package Structures.BTree;
             height++;
         }
 
-        private Node insert(Node h, Key key, Value val, int ht) {
+        private Node insert(Node h, K key, V val, int ht) {
             int j;
             Entry t = new Entry(key, val, null);
 
@@ -221,7 +225,7 @@ package Structures.BTree;
         }
 
 
-        // comparison functions - make Comparable instead of Key to avoid casts
+        // comparison functions - make Comparable instead of K to avoid casts
         private boolean less(Comparable k1, Comparable k2) {
             return k1.compareTo(k2) < 0;
         }
@@ -232,10 +236,16 @@ package Structures.BTree;
 
 
 
-        public void remove(Key key){
+        public void remove(K key){
             remove(key,this.root, height);
         }
-        private void remove(Key key, Node root, int ht){
+
+    @Override
+    public StructureType getType() {
+        return StructureType.B;
+    }
+
+    private void remove(K key, Node root, int ht){
             Entry[] children = root.children;
 
             // external node
@@ -278,11 +288,11 @@ package Structures.BTree;
          */
         public static void main(String[] args) {
             BTree<Integer, String> prueba = new BTree();
-            prueba.put(1, "Primero");
-            prueba.put(2, "segundo");
-            prueba.put(3, "Tercero");
-            prueba.put(4, "Cuarto");
-            prueba.put(5, "Quinto");
+            prueba.add(1, "Primero");
+            prueba.add(2, "segundo");
+            prueba.add(3, "Tercero");
+            prueba.add(4, "Cuarto");
+            prueba.add(5, "Quinto");
             System.out.println(prueba.search(4));
             prueba.remove(3);
             System.out.println(prueba.search(3));

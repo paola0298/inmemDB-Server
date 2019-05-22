@@ -1,28 +1,31 @@
 package Structures.SplayTree;
 
-public class SplayBST<Key extends Comparable<Key>, Value>  {
+import Structures.AbstractTree.AbstractTree;
+import Structures.AbstractTree.StructureType;
+
+public class SplayBST<K extends Comparable<K>, V> extends AbstractTree<K, V> {
 
     private Node root;   // root of the BST
 
     // BST helper node data type
     private class Node {
-        private Key key;            // key
-        private Value value;        // associated data
+        private K key;            // key
+        private V value;        // associated data
         private Node left, right;   // left and right subtrees
 
-        public Node(Key key, Value value) {
+        public Node(K key, V value) {
             this.key   = key;
             this.value = value;
         }
     }
 
-    public boolean contains(Key key) {
+    public boolean contains(K key) {
         return search(key) != null;
     }
 
     // return value associated with the given key
     // if no such value, return null
-    public Value search(Key key) {
+    public V search(K key) {
         root = splay(root, key);
         int cmp = key.compareTo(root.key);
         if (cmp == 0) return root.value;
@@ -32,7 +35,7 @@ public class SplayBST<Key extends Comparable<Key>, Value>  {
     /***************************************************************************
      *  Splay tree insertion.
      ***************************************************************************/
-    public void put(Key key, Value value) {
+    public void add(K key, V value) {
         // splay key to root
         if (root == null) {
             root = new Node(key, value);
@@ -79,7 +82,7 @@ public class SplayBST<Key extends Comparable<Key>, Value>  {
      * right subtree. Finally, A's right child is made the new root's right
      * child.
      */
-    public void remove(Key key) {
+    public void remove(K key) {
         if (root == null) return; // empty tree
 
         root = splay(root, key);
@@ -101,6 +104,11 @@ public class SplayBST<Key extends Comparable<Key>, Value>  {
         // else: it wasn't in the tree to remove
     }
 
+    @Override
+    public StructureType getType() {
+        return StructureType.SPLAY;
+    }
+
 
     /***************************************************************************
      * Splay tree function.
@@ -108,7 +116,7 @@ public class SplayBST<Key extends Comparable<Key>, Value>  {
     // splay key in the tree rooted at Node h. If a node with that key exists,
     //   it is splayed to the root of the tree. If it does not, the last node
     //   along the search path for the key is splayed to the root.
-    private Node splay(Node h, Key key) {
+    private Node splay(Node h, K key) {
         if (h == null) return null;
 
         int cmp1 = key.compareTo(h.key);
@@ -199,20 +207,20 @@ public class SplayBST<Key extends Comparable<Key>, Value>  {
     // test client
     public static void main(String[] args) {
         SplayBST<Integer, Integer> st1 = new SplayBST<Integer, Integer>();
-        st1.put(5, 5);
-        st1.put(9, 9);
-        st1.put(13, 13);
-        st1.put(11, 11);
-        st1.put(1, 1);
+        st1.add(5, 5);
+        st1.add(9, 9);
+        st1.add(13, 13);
+        st1.add(11, 11);
+        st1.add(1, 1);
 
 
         SplayBST<String, String> st = new SplayBST<String, String>();
-        st.put("www.cs.princeton.edu", "128.112.136.11");
-        st.put("www.cs.princeton.edu", "128.112.136.12");
-        st.put("www.cs.princeton.edu", "128.112.136.13");
-        st.put("www.princeton.edu",    "128.112.128.15");
-        st.put("www.yale.edu",         "130.132.143.21");
-        st.put("www.simpsons.com",     "209.052.165.60");
+        st.add("www.cs.princeton.edu", "128.112.136.11");
+        st.add("www.cs.princeton.edu", "128.112.136.12");
+        st.add("www.cs.princeton.edu", "128.112.136.13");
+        st.add("www.princeton.edu",    "128.112.128.15");
+        st.add("www.yale.edu",         "130.132.143.21");
+        st.add("www.simpsons.com",     "209.052.165.60");
         System.out.println("The size 0 is: " + st.size());
         st.remove("www.yale.edu");
         System.out.println("The size 1 is: " + st.size());

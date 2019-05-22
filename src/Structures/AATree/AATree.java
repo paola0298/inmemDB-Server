@@ -5,8 +5,11 @@ package Structures.AATree;
  */
 
 
+import Structures.AbstractTree.AbstractTree;
+import Structures.AbstractTree.StructureType;
+
 /** Class AATree **/
-public class AATree<K extends Comparable<? super K>, V> {
+public class AATree<K extends Comparable<? super K>, V> extends AbstractTree<K, V> {
     private AANode<K,V> root;
 
 
@@ -26,7 +29,7 @@ public class AATree<K extends Comparable<? super K>, V> {
     }
 
     /* Functions to insert data */
-    public void insert(K key, V value) {
+    public void add(K key, V value) {
         root = insert(key, root, value);
     }
 
@@ -111,6 +114,17 @@ public class AATree<K extends Comparable<? super K>, V> {
         return search(root, key);
     }
 
+    @Override
+    public void remove(K key) {
+        //TODO metodo para eliminar
+        System.out.println("Removing " + key);
+    }
+
+    @Override
+    public StructureType getType() {
+        return StructureType.AA;
+    }
+
     private V search(AANode<K,V> r, K key) {
         V result = null;
         while ((r != null) && result==null) {
@@ -159,6 +173,7 @@ public class AATree<K extends Comparable<? super K>, V> {
     }
 
     private void postorder(AANode r) {
+
         if (r != null) {
             postorder(r.getLeft());
             postorder(r.getRight());
@@ -167,27 +182,26 @@ public class AATree<K extends Comparable<? super K>, V> {
     }
 
 
-    //TODO metodo para eliminar
 
     public static void main(String[] args)
     {
 
         AATree<Integer, Integer> at= new AATree<>();
-        at.insert(30,300);
-        at.insert(15,150);
-        at.insert(70,700);
-        at.insert(5,50);
-        at.insert(20,200);
-        at.insert(10,100);
-        at.insert(50,500);
-        at.insert(85,850);
-        at.insert(35,350);
-        at.insert(60,600);
-        at.insert(40,400);
-        at.insert(55,550);
-        at.insert(65,650);
-        at.insert(80,800);
-        at.insert(90,900);
+        at.add(30,300);
+        at.add(15,150);
+        at.add(70,700);
+        at.add(5,50);
+        at.add(20,200);
+        at.add(10,100);
+        at.add(50,500);
+        at.add(85,850);
+        at.add(35,350);
+        at.add(60,600);
+        at.add(40,400);
+        at.add(55,550);
+        at.add(65,650);
+        at.add(80,800);
+        at.add(90,900);
 
         at.inorder();
 

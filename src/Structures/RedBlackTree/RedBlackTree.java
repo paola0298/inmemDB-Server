@@ -1,9 +1,12 @@
 package Structures.RedBlackTree;
+import Structures.AbstractTree.AbstractTree;
+import Structures.AbstractTree.StructureType;
+
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class RedBlackTree<K extends Comparable<K>,V> {
+public class RedBlackTree<K extends Comparable<K>,V>  extends AbstractTree<K, V> {
 
     // Root initialized to nil.
     private RedBlackNode<K, V> nil = new RedBlackNode<>();
@@ -162,14 +165,14 @@ public class RedBlackTree<K extends Comparable<K>,V> {
     }// end rightRotateFixup(RedBlackNode y)
 
 
-    public void insert(K key, V value) {
-        insert(new RedBlackNode<K, V>(key, value));
+    public void add(K key, V value) {
+        add(new RedBlackNode<K, V>(key, value));
     }
 
     // @param: z, the node to be inserted into the Tree rooted at root
     // Inserts z into the appropriate position in the RedBlackTree while
     // updating numLeft and numRight values.
-    private void insert(RedBlackNode<K, V> z) {
+    private void add(RedBlackNode<K, V> z) {
 
         // Create a reference to root & initialize a node to nil
         RedBlackNode<K,V> y = nil;
@@ -216,13 +219,13 @@ public class RedBlackTree<K extends Comparable<K>,V> {
         // Call insertFixup(z)
         insertFixup(z);
 
-    }// end insert(RedBlackNode z)
+    }// end add(RedBlackNode z)
 
 
     // @param: z, the node which was inserted and may have caused a violation
     // of the RedBlackTree properties
     // Fixes up the violation of the RedBlackTree properties that may have
-    // been caused during insert(z)
+    // been caused during add(z)
     private void insertFixup(RedBlackNode<K, V> z){
 
         RedBlackNode<K, V> y = nil;
@@ -332,7 +335,7 @@ public class RedBlackTree<K extends Comparable<K>,V> {
     // Remove's z from the RedBlackTree rooted at root
     public void remove(RedBlackNode<K, V> v){
 
-        RedBlackNode<K, V> z = search(v.key);
+        RedBlackNode<K, V> z = search1(v.key);
 
         // Declare variables
         RedBlackNode<K, V> x = nil;
@@ -380,6 +383,34 @@ public class RedBlackTree<K extends Comparable<K>,V> {
         if (y.color == RedBlackNode.BLACK)
             removeFixup(x);
     }// end remove(RedBlackNode z)
+
+    private RedBlackNode<K,V> search1(K key) {
+        // Initialize a pointer to the root to traverse the tree
+        RedBlackNode<K, V> current = root;
+
+        // While we haven't reached the end of the tree
+        while (!isNil(current)){
+
+            // If we have found a node with a key equal to key
+            if (current.key.equals(key))
+
+                // return that node and exit search(int)
+                return current;
+
+                // go left or right based on value of current and key
+            else if (current.key.compareTo(key) < 0)
+                current = current.right;
+
+                // go left or right based on value of current and key
+            else
+                current = current.left;
+        }
+
+        // we have not found a node whose key is "key"
+        return null;
+
+
+    }
 
 
     // @param: y, the RedBlackNode which was actually deleted from the tree
@@ -550,7 +581,7 @@ public class RedBlackTree<K extends Comparable<K>,V> {
     // @return: returns a node with the key, key, if not found, returns null
     // Searches for a node with key k and returns the first such node, if no
     // such node is found returns null
-    public RedBlackNode<K, V> search(K key){
+    public V search(K key){
 
         // Initialize a pointer to the root to traverse the tree
         RedBlackNode<K, V> current = root;
@@ -562,7 +593,7 @@ public class RedBlackTree<K extends Comparable<K>,V> {
             if (current.key.equals(key))
 
                 // return that node and exit search(int)
-                return current;
+                return current.value;
 
                 // go left or right based on value of current and key
             else if (current.key.compareTo(key) < 0)
@@ -578,6 +609,16 @@ public class RedBlackTree<K extends Comparable<K>,V> {
 
 
     }// end search(int key)
+
+    @Override
+    public void remove(K key) {
+
+    }
+
+    @Override
+    public StructureType getType() {
+        return StructureType.REDBLACK;
+    }
 
     // @param: key, any Comparable object
     // @return: return's the number of elements greater than key
@@ -693,10 +734,10 @@ public class RedBlackTree<K extends Comparable<K>,V> {
     public static void main(String [] args){
         RedBlackTree<Integer, Integer> prueba = new RedBlackTree<>();
         int a = 4;
-        prueba.insert(a, 10);
-        prueba.insert(6,11);
-        prueba.insert(8,12);
-        System.out.println("Value "+prueba.search(a).getValue()+" Key "+prueba.search(a).getKey() );
+        prueba.add(a, 10);
+        prueba.add(6,11);
+        prueba.add(8,12);
+        System.out.println("Value "+prueba.search(a));
 
 
         prueba.remove(prueba.search(a));
