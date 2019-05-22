@@ -10,21 +10,32 @@ public class AATree<K extends Comparable<? super K>, V> {
     private AANode<K,V> root;
 
 
-    /** Constructor **/
+    /**
+     * El método constructor del árbol
+     */
     public AATree() {
         root = null;
     }
-
+    /**
+     * El método se encarga de verificar si el árbol está vacío
+     */
     /** Function to check if tree is empty **/
     public boolean isEmpty() {
         return root == null;
     }
-
+    /**
+     * Método que vacía el árbol
+     */
     /** Make the tree empty **/
     public void clear() {
         root = null;
     }
 
+    /**
+     * Este método se encarga de hacer inserciones en el árbol
+     * @param key
+     * @param value
+     */
     /* Functions to insert data */
     public void insert(K key, V value) {
         root = insert(key, root, value);
@@ -44,7 +55,9 @@ public class AATree<K extends Comparable<? super K>, V> {
         T = split(T);
         return T;
     }
-
+    /**
+     *
+     */
     /** Function Skew **/
     private AANode<K,V> skew(AANode<K,V> T) {
         if (T == null)
@@ -60,7 +73,7 @@ public class AATree<K extends Comparable<? super K>, V> {
         else
             return T;
     }
-
+    /** Este método se encarga de separar el árbol
     /** Function split **/
     private AANode<K,V> split(AANode<K,V> T) {
         if (T == null)
@@ -78,7 +91,9 @@ public class AATree<K extends Comparable<? super K>, V> {
         else
             return T;
     }
-
+    /**
+     * Este método se encarga de disminuir el nivel de una llave
+     */
     /** Function decrease key **/
     private AANode<K,V> decreaseLevel(AANode<K,V> T) {
         int shouldBe = Math.min(T.getLeft().getLevel(), T.getRight().getLevel()) + 1;
@@ -89,7 +104,9 @@ public class AATree<K extends Comparable<? super K>, V> {
         }
         return T;
     }
-
+    /**
+     * Este método cuenta los nodos del árbol
+     */
     /** Functions to count number of nodes **/
     public int countNodes() {
         return countNodes(root);
@@ -105,12 +122,20 @@ public class AATree<K extends Comparable<? super K>, V> {
             return l;
         }
     }
-
+    /**
+     * Este método es el encargado de hacer la llamada de la búsqueda da un elemento dado un key
+     */
     /** Functions to search for an element **/
     public V search(K key) {
         return search(root, key);
     }
 
+    /**
+     * Este método es el encargado de hacer la búsqueda da un elemento dado un key
+     * @param r
+     * @param key
+     * @return
+     */
     private V search(AANode<K,V> r, K key) {
         V result = null;
         while ((r != null) && result==null) {
