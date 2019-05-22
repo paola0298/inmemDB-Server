@@ -17,12 +17,12 @@ public class SplayBST<Key extends Comparable<Key>, Value>  {
     }
 
     public boolean contains(Key key) {
-        return get(key) != null;
+        return search(key) != null;
     }
 
     // return value associated with the given key
     // if no such value, return null
-    public Value get(Key key) {
+    public Value search(Key key) {
         root = splay(root, key);
         int cmp = key.compareTo(root.key);
         if (cmp == 0) return root.value;
@@ -195,6 +195,7 @@ public class SplayBST<Key extends Comparable<Key>, Value>  {
         return x;
     }
 
+
     // test client
     public static void main(String[] args) {
         SplayBST<Integer, Integer> st1 = new SplayBST<Integer, Integer>();
@@ -219,11 +220,11 @@ public class SplayBST<Key extends Comparable<Key>, Value>  {
         System.out.println("The size 2 is: " + st.size());
         st.remove("non-member");
         System.out.println("The size 3 is: " + st.size());
-        System.out.println(st.get("www.cs.princeton.edu"));
+        System.out.println(st.search("www.cs.princeton.edu"));
         System.out.println("The size 4 is: " + st.size());
-        System.out.println(st.get("www.yale.com"));
+        System.out.println(st.search("www.yale.com"));
         System.out.println("The size 5 is: " + st.size());
-        System.out.println(st.get("www.simpsons.com"));
+        System.out.println(st.search("www.simpsons.com"));
         System.out.println("The size 6 is: " + st.size());
         System.out.println();
     }

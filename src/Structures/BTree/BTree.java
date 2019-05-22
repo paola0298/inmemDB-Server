@@ -32,7 +32,7 @@ package Structures.BTree;
         }
 
 
-
+        //TODO delete method
 
 
 
@@ -77,7 +77,7 @@ package Structures.BTree;
          *         and {@code null} if the key is not in the symbol table
          * @throws IllegalArgumentException if {@code key} is {@code null}
          */
-        public Value get(Key key) {
+        public Value search(Key key) {
             if (key == null) throw new IllegalArgumentException("argument to get() is null");
             return search(root, key, height);
         }
@@ -217,7 +217,7 @@ package Structures.BTree;
             prueba.put(3, "Tercero");
             prueba.put(4, "Cuarto");
             prueba.put(5, "Quinto");
-            System.out.println(prueba.get(4));
+            System.out.println(prueba.search(4));
 
 
         }

@@ -1,5 +1,6 @@
 package Structures.AVLTree;
 
+
 public class AVLTree<K extends Comparable<? super K>, V> {
 
     private AVLNode<K,V> root;
@@ -289,6 +290,22 @@ public class AVLTree<K extends Comparable<? super K>, V> {
         this.root = root;
     }
 
+    public V search(K key) {
+        return search(key, this.root);
+    }
+
+    private V search(K key, AVLNode<K,V> current) {
+        if (current == null) {
+            return null;
+        } else if (current.getKey().compareTo(key) < 0) {
+            return search(key, current.getRight());
+        } else if (current.getKey().compareTo(key) > 0) {
+            return search(key, current.getLeft());
+        }
+        System.out.println("Node " + current.getValue() + " found!");
+        return current.getValue();
+    }
+
     public static void main(String[] args)
     {
         AVLTree<Integer, Integer> tree = new AVLTree<>();
@@ -304,6 +321,8 @@ public class AVLTree<K extends Comparable<? super K>, V> {
         tree.insert(-1, -100);
         tree.insert(1, 100);
         tree.insert(2, 200);
+
+        tree.search(2);
 
 
         /* The constructed AVL Tree would be
