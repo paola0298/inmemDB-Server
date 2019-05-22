@@ -1,16 +1,34 @@
-package Structures;
+package Structures.AVLTree;
 
-public class AVLNode<K extends Comparable<K>, V>{
+public class AVLNode<K extends Comparable<? super K>, V> {
     private K key;
+
+    private V value;
     private int height;
-    private AVLNode<K,V> left;
-    private AVLNode<K, V> right;
+    private AVLNode<K, V> left, right;
+    public AVLNode(K key, V value)
+    {
+        this.key = key;
+        this.value = value;
+        this.height = 1;
+    }
+
+
     public K getKey() {
         return key;
     }
 
     public void setKey(K key) {
         this.key = key;
+    }
+
+
+    public V getValue() {
+        return value;
+    }
+
+    public void setValue(V value) {
+        this.value = value;
     }
 
     public int getHeight() {
@@ -35,10 +53,5 @@ public class AVLNode<K extends Comparable<K>, V>{
 
     public void setRight(AVLNode<K, V> right) {
         this.right = right;
-    }
-
-    public AVLNode(K key) {
-        this.key = key;
-        height = 1;
     }
 }

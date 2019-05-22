@@ -1,4 +1,4 @@
-package Structures;
+package Structures.SplayTree;
 
 public enum WhichChild {
     LEFTCHILD,

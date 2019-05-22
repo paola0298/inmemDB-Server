@@ -1,4 +1,4 @@
-package Structures;
+package Structures.RedBlackTree;
 
 public class RedBlackNode <K extends Comparable<K>, V> {
 
