@@ -7,12 +7,21 @@ public class AANode <K extends Comparable<? super K>, V>
     private int level;
     private K key;
     private V value;
-
+    /**
+     * El constructor del nodo
+     * @param key
+     * @param value
+     */
     /** Constructor **/
     public AANode(K key, V value) {
         this(key, value, null, null);
     }
-
+    /**
+     * @param key
+     * @param value
+     * @param left Este es un nodo, y se refiere al nodo izquierdo del nodo por crear
+     * @param right Este es un nodo, y se refiere al nodo derecho del nodo por crear
+     */
     /** Constructor **/
     public AANode(K key, V value, AANode left, AANode right)
     {

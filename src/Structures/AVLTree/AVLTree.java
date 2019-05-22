@@ -155,6 +155,11 @@ public class AVLTree<K extends Comparable<? super K>, V> extends AbstractTree<K,
         return node;
     }
 
+    /**
+     * Se busca el nodo que esté de último a la izquierda, que representa el nodo de valor mínimo
+     * @param node
+     * @return Se retorna un nodo
+     */
     private AVLNode<K, V> minValueNode(AVLNode<K, V> node)
     {
         AVLNode<K, V> current = node;
@@ -165,6 +170,7 @@ public class AVLTree<K extends Comparable<? super K>, V> extends AbstractTree<K,
 
         return current;
     }
+
 
     public void remove(K key){
         this.root = deleteNode(this.root, key);
@@ -180,6 +186,22 @@ public class AVLTree<K extends Comparable<? super K>, V> extends AbstractTree<K,
     public StructureType getType() {
         return StructureType.AVL;
     }
+
+
+    /**
+     * Este método se encarga de llamar el método que elimina un nodo específico
+     * @param key
+     */
+    public void delete(K key){
+        this.root = deleteNode(this.root, key);
+    }
+
+    /**
+     * Elemento que elimina el nodo correspondiente a la llave llamada
+     * @param root
+     * @param key
+     * @return el nodo equivalente a la raíz del árbol pero ya eliminado el nodo deseado
+     */
 
     private AVLNode<K, V> deleteNode(AVLNode<K, V> root, K key) {
         // STEP 1: PERFORM STANDARD BST remove
@@ -304,10 +326,21 @@ public class AVLTree<K extends Comparable<? super K>, V> extends AbstractTree<K,
         this.root = root;
     }
 
+    /**
+     * LLamada del método que va a realizar la búsqueda del elemento
+     * @param key
+     * @return El value del nodo que se encuentre
+     */
     public V search(K key) {
         return search(key, this.root);
     }
 
+    /**
+     * Método que se encarga de realizar la búsqueda según la llave que se recibe
+     * @param key
+     * @param current
+     * @return el nodo esperado, si se encuentra en el árbol
+     */
     private V search(K key, AVLNode<K,V> current) {
         if (current == null) {
             return null;

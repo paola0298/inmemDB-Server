@@ -8,6 +8,11 @@ public class Node<K extends Comparable<? super K>, V> {
     private Node<K, V> left;
     private Node<K, V> right;
 
+    /**
+     * Constructor del nodo
+     * @param key
+     * @param value
+     */
     public Node(K key, V value) {
         this.key = key;
         this.value = value;
@@ -45,6 +50,9 @@ public class Node<K extends Comparable<? super K>, V> {
         this.right = right;
     }
 
+    /**
+     * @return valor boolean sobre si el nodo es una hoja del árbol o no
+     */
     public boolean isLeaf() {
         return (left == null) && (right == null);
     }
