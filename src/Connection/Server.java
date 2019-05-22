@@ -1,6 +1,12 @@
 package Connection;
 
+import Structures.AATree.AATree;
+import Structures.AVLTree.AVLTree;
 import Structures.AbstractTree.AbstractTree;
+import Structures.BTree.BTree;
+import Structures.BinaryTree.BinaryTree;
+import Structures.RedBlackTree.RedBlackTree;
+import Structures.SplayTree.SplayBST;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
@@ -13,6 +19,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Set;
 
 /**
  * @author Paola
@@ -28,8 +35,9 @@ public class Server {
         private Hashtable<String, Hashtable<String, String>> collections = new Hashtable<>();
     // nombre del esquema, HashTable <id, jsonArray con atributos>
 
-    private Hashtable<String, Hashtable<String, AbstractTree>> index;
+    private Hashtable<String, Hashtable<String, AbstractTree>> index = new Hashtable<>();
     // nombre del esquema, Hashtable <nombre indice, arbol>
+    private JSONObject listOfIndex = new JSONObject();
 
 
     /**
@@ -162,6 +170,10 @@ public class Server {
                     response = createIndex(scheme, indexName, attrName, treeName);
                     sendResponse(response.toString(), con);
                     break;
+
+                case "getIndexList":
+                    response = getIndexList();
+                    sendResponse(response.toString(), con);
 
                 case "deleteIndex":
                     deleteIndex();
@@ -504,6 +516,7 @@ public class Server {
         return false;
     }
 
+
     /*
                     "action" : "queryData
     "parameters" : {
@@ -515,7 +528,6 @@ public class Server {
                                         la estructura del join
     }
                      */
-
     /**
      * Este método se encarga de la consulta de datos sobre un esquema específico
      * @param parameters recibe un string con lo que se desee buscar
@@ -857,32 +869,114 @@ public class Server {
     }
 
     private JSONObject createIndex(String scheme, String indexName, String attrName, String treeName) {
+        JSONObject response =  new JSONObject();
+        //todo verificar si el hay un indice con el mismo nombre o sobre el mismo atributo y con el mismo arbol
+        AbstractTree<String, String> tree;
         switch (treeName){
             case "AA":
                 System.out.println("Creating AA Tree");
+                tree = new AATree<>();
+                fillTree(scheme, indexName, attrName, tree);
                 break;
             case "AVL":
                 System.out.println("Creating AVL Tree");
+                tree = new AVLTree<>();
+                fillTree(scheme, indexName, attrName, tree);
                 break;
             case "Binario":
                 System.out.println("Creating Binary Tree");
+                tree = new BinaryTree<>();
+                fillTree(scheme, indexName, attrName, tree);
                 break;
             case "B":
                 System.out.println("Creating B Tree");
+                tree = new BTree<>();
+                fillTree(scheme, indexName, attrName, tree);
                 break;
             case "B+":
                 System.out.println("Creating B+ Tree");
             case "Rojo-Negro":
                 System.out.println("Creating Red-Black Tree");
+                tree = new RedBlackTree<>();
+                fillTree(scheme, indexName, attrName, tree);
                 break;
             case "Splay":
                 System.out.println("Creating Splay Tree");
+                tree = new SplayBST<>();
+                fillTree(scheme, indexName, attrName, tree);
                 break;
-
         }
 
-        return new JSONObject();
+        JSONArray indexList = getActualIndexList(scheme);
+
+        response.put("status", "success");
+        response.put("indexList", indexList);
+        response.put("scheme", scheme);
+        System.out.println(response);
+
+        return response;
+
+
         //TODO create method to create a new index
+    }
+
+    private JSONObject getIndexList() {
+        JSONObject response = new JSONObject();
+        response.put("status", "success");
+        response.put("list", listOfIndex);
+        return response;
+    }
+
+    /**
+     * Este metodo obtiene la lista de los indices creados sobre un esquema
+     * @param scheme
+     * @return
+     */
+
+    private JSONArray getActualIndexList(String scheme) {
+        JSONArray list = new JSONArray();
+        Hashtable<String, AbstractTree> actualCollectionIndex = index.get(scheme);
+
+        for (String key : actualCollectionIndex.keySet()){
+            list.put(key);
+        }
+
+        Set<String> keySet = listOfIndex.keySet();
+        if (keySet.size() > 1){
+            for (String key : keySet){
+                if (key.equals(scheme)){
+                    listOfIndex.remove(scheme);
+                }
+            }
+        }
+
+        listOfIndex.put(scheme, list);
+
+        return list;
+    }
+
+    private void fillTree(String scheme, String indexName, String attrName, AbstractTree<String,String> tree) {
+        if (collections.containsKey(scheme)){
+            JSONObject schemeStructure = new JSONObject(schemes.get(scheme));
+            int attrNameIndex = searchIndexOfArray(attrName, schemeStructure);
+            Hashtable<String, String> actualCollection = collections.get(scheme);
+
+            for (String id : actualCollection.keySet()){
+                JSONArray attrArray = new JSONArray(actualCollection.get(id));
+                tree.add(attrArray.getString(attrNameIndex), actualCollection.get(id));
+            }
+            tree.show();
+        }
+        if (!index.containsKey(scheme)) {
+            Hashtable<String, AbstractTree> treeToAdd = new Hashtable<>();
+            treeToAdd.put(indexName, tree);
+            index.put(scheme, treeToAdd);
+        } else {
+            Hashtable<String, AbstractTree> actualIndexCollection = index.get(scheme);
+            index.remove(scheme);
+            actualIndexCollection.put(indexName, tree);
+            index.put(scheme, actualIndexCollection);
+        }
     }
 
     private void deleteIndex() {
