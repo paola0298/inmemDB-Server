@@ -5,16 +5,23 @@ package Structures;
         private static final int M = 4;
 
         private Node root;       // root of the B-tree
-        private int height;      // height of the B-tree
+        private int height = 0;      // height of the B-tree
         private int n;           // number of key-value pairs in the B-tree
 
         private static final class Node {
             private int m;                             // number of children
             private Entry[] children = new Entry[M];   // the array of children
+            private boolean isLeaf;
 
             // create a node with k children
             private Node(int k) {
+                isLeaf = true;
                 m = k;
+
+            }
+
+            public void setLeaf(boolean b) {
+                isLeaf = b;
             }
         }
 
@@ -29,10 +36,27 @@ package Structures;
                 this.val  = val;
                 this.next = next;
             }
+
+            public Comparable getKey() {
+                return key;
+            }
+
+            public void setKey(Comparable key) {
+                this.key = key;
+            }
+
+            public Object getVal() {
+                return val;
+            }
+
+            public Node getNext() {
+                return next;
+            }
+
+            public void setNext(Node next) {
+                this.next = next;
+            }
         }
-
-
-
 
 
 
@@ -88,16 +112,16 @@ package Structures;
             // external node
             if (ht == 0) {
                 for (int j = 0; j < x.m; j++) {
-                    if (eq(key, children[j].key)) return (Value) children[j].val;
+                    if (eq(key, children[j].key)) return  (Value) children[j].getVal();
                 }
             }
 
             // internal node
             else {
-                for (int j = 0; j < x.m; j++) {
-                    if (j+1 == x.m || less(key, children[j+1].key))
-                        return search(children[j].next, key, ht-1);
-                }
+                for (int f = 0; f+1 < x.m; f++)
+                    if (f + 1 == x.m || less(key, children[f + 1].key)) {
+                        return search(children[f].next, key, ht - 1);
+                    }
             }
             return null;
         }
@@ -122,6 +146,7 @@ package Structures;
             Node t = new Node(2);
             t.children[0] = new Entry(root.children[0].key, null, root);
             t.children[1] = new Entry(u.children[0].key, null, u);
+            t.setLeaf(false);
             root = t;
             height++;
         }
@@ -205,6 +230,46 @@ package Structures;
         }
 
 
+
+        public void remove(Key key){
+            remove(key,this.root, height);
+        }
+        private void remove(Key key, Node root, int ht){
+            Entry[] children = root.children;
+
+            // external node
+            if (ht == 1) {
+                for (int j = 0; j < root.m; j++) {
+                    if (eq(key, children[j].key)) {
+                        removeAux(children[j],children,j,1);
+
+                    }
+                }
+            }
+
+            // internal node
+            else {
+                for (int j = 0; j < root.m; j++) {
+                    if (j+1 == root.m || less(key, children[j+1].key)) {
+                        //return search(children[j].next, key, ht-1);
+                    }
+                }
+            }
+
+
+        }
+        public void removeAux(Object data, Entry[] children, int j,int acc){
+            if (acc > 0){
+                children[j] = children[j+1];
+            }
+//            else if(){
+//
+//            }
+
+
+        }
+
+
         /**
          * Unit tests the {@code BTree} data type.
          *
@@ -217,7 +282,8 @@ package Structures;
             prueba.put(3, "Tercero");
             prueba.put(4, "Cuarto");
             prueba.put(5, "Quinto");
-            System.out.println(prueba.get(4));
+            prueba.remove(3);
+            System.out.println(prueba.get(3));
 
 
         }
