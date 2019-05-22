@@ -7,7 +7,6 @@ import org.json.JSONObject;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -28,6 +27,7 @@ public class Server {
     //nombre del esquema, json con estructura del esquema
         private Hashtable<String, Hashtable<String, String>> collections = new Hashtable<>();
     // nombre del esquema, HashTable <id, jsonArray con atributos>
+
 
     /**
      * @param port Puerto en el cual el servidor esta escuchando
@@ -151,7 +151,13 @@ public class Server {
                     break;
 
                 case "createIndex":
-                    createIndex();
+                    scheme = msg.getString("scheme");
+                    String indexName = msg.getString("indexName");
+                    String attrName = msg.getString("attr");
+                    String treeName = msg.getString("tree");
+
+                    response = createIndex(scheme, indexName, attrName, treeName);
+                    sendResponse(response.toString(), con);
                     break;
 
                 case "deleteIndex":
@@ -359,6 +365,8 @@ public class Server {
             //el esquema tiene colecciones de datos
             System.out.println("El esquema tiene colecciones");
 
+            JSONArray deleted = new JSONArray();
+
             for (int i=0; i<primaryKeys.length(); i++) {
 
                 String primaryKey = primaryKeys.getString(i);
@@ -369,36 +377,92 @@ public class Server {
 
                     System.out.println("Collections before remove " + collections);
 
-                    collectionOfScheme.remove(primaryKey);
-                    collections.remove(scheme);
-                    collections.put(scheme, collectionOfScheme);
+                    //true si encuentra un join, false caso contrario
+//                    boolean check = checkJoin(primaryKey);
 
-                    System.out.println("Collections after remove " + collections);
+                    if (!checkJoin(primaryKey, scheme)) {
 
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    try {
-                        String serializedCollections = objectMapper.writeValueAsString(collections);
-                        response.put("status", "success");
-                        response.put("collections", serializedCollections);
-                        System.out.println("Sending response");
-                        return response;
-                    } catch (JsonProcessingException e) {
-                        response.put("status", "failed");
-                        response.put("error", "serialize");
-                        return response;
+                        collectionOfScheme.remove(primaryKey);
+                        collections.remove(scheme);
+                        collections.put(scheme, collectionOfScheme);
+                        deleted.put(primaryKey);
+
+                        System.out.println("Collections after remove " + collections);
                     }
                 }
             }
 
-            response.put("status", "failed");
-            response.put("error", "register not found");
-            return response;
+            if (deleted.length() == primaryKeys.length()){
+                response.put("status", "success");
+                response.put("deleted", "all");
+
+            }else if (deleted.length() == 0){
+                response.put("status", "success");
+                response.put("deleted", "none");
+            } else {
+                response.put("status", "success");
+                response.put("deleted", "some");
+            }
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                String serializedCollections = objectMapper.writeValueAsString(collections);
+                response.put("collections", serializedCollections);
+                System.out.println("Sending response");
+                return response;
+            } catch (JsonProcessingException e) {
+                response.put("status", "failed");
+                response.put("error", "serialize");
+                return response;
+            }
+
+
         } else{
             //el esquema no tiene colleciones de datos
             response.put("status", "failed");
             response.put("error", "no data");
             return response;
         }
+    }
+
+    private boolean checkJoin(String primaryKey, String schemeName) {
+        System.out.println("Actual schemes " + schemes.toString());
+
+        for (String key : schemes.keySet()){
+            if (!key.equals(schemeName)) {
+                JSONObject schemeStrucuture = new JSONObject(schemes.get(key));
+                JSONArray attrType = schemeStrucuture.getJSONArray("attrType");
+
+
+                int joinIndex = -1;
+                boolean joinFound = false;
+                for (int i = 0; i < attrType.length(); i++) {
+                    System.out.println("Attr size " + attrType.get(i));
+                    if (attrType.get(i).equals("join")) {
+                        joinFound = true;
+                        joinIndex = i;
+                    }
+                }
+
+                System.out.println("joinFound " + joinFound);
+                System.out.println("join index " + joinIndex);
+
+                if (joinFound) {
+                    //verificar si el join es con la coleccion de datos que se quiere eliminar
+                    Hashtable<String, String> collection = collections.get(key);
+
+                    for (String pk : collection.keySet()) {
+                        JSONArray arrayOfAttr = new JSONArray(collection.get(pk));
+                        System.out.println("Primary key en join " + arrayOfAttr.get(joinIndex));
+                        if (arrayOfAttr.get(joinIndex).equals(primaryKey)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /*
@@ -686,9 +750,38 @@ public class Server {
         return -1;
     }
 
-    private void createIndex() { }
+    private JSONObject createIndex(String scheme, String indexName, String attrName, String treeName) {
+        switch (treeName){
+            case "AA":
+                System.out.println("Creating AA Tree");
+                break;
+            case "AVL":
+                System.out.println("Creating AVL Tree");
+                break;
+            case "Binario":
+                System.out.println("Creating Binary Tree");
+                break;
+            case "B":
+                System.out.println("Creating B Tree");
+                break;
+            case "B+":
+                System.out.println("Creating B+ Tree");
+            case "Rojo-Negro":
+                System.out.println("Creating Red-Black Tree");
+                break;
+            case "Splay":
+                System.out.println("Creating Splay Tree");
+                break;
 
-    private void deleteIndex() { }
+        }
+
+        return new JSONObject();
+        //TODO create method to create a new index
+    }
+
+    private void deleteIndex() {
+        //TODO create method to delete a index
+    }
 
     private void stopServer() {
         this.isRunning = false;
@@ -710,11 +803,6 @@ public class Server {
     si hay join
         - extraer datos
         - hay posibilidad de buscar por columnas del join
-
-
-
-
-mpvc0201
      */
 
 }
