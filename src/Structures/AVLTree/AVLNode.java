@@ -6,6 +6,12 @@ public class AVLNode<K extends Comparable<? super K>, V> {
     private V value;
     private int height;
     private AVLNode<K, V> left, right;
+
+    /**
+     * Constructor del nodo
+     * @param key
+     * @param value
+     */
     public AVLNode(K key, V value)
     {
         this.key = key;
