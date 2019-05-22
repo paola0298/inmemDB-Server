@@ -23,7 +23,6 @@ import java.util.Hashtable;
 public class Server {
     private ServerSocket serverSocket;
     private boolean isRunning = true;
-
     private Hashtable<String, String> schemes = new Hashtable<>();
     //nombre del esquema, json con estructura del esquema
         private Hashtable<String, Hashtable<String, String>> collections = new Hashtable<>();
@@ -174,6 +173,10 @@ public class Server {
 
     }
 
+    /**
+     * Este método es utilizado para obtener los datos actualizados
+     * @return retorna un JSONObject con una respuesta según el estado de la creación del nuevo esquema
+     */
     private JSONObject getUpdatedData() {
         JSONObject response = new JSONObject();
         String serializedSchemes;
@@ -195,6 +198,11 @@ public class Server {
         return response;
     }
 
+    /**
+     * Este método es utilizado parta obtener los datos referentes a los esquemas
+     * @param schemeName
+     * @return retorna un JSONObject con una respuesta según el estado de la creación del nuevo esquema
+     */
     private JSONObject getSchemeData(String schemeName) {
         JSONObject response = new JSONObject();
         ObjectMapper mapper = new ObjectMapper();
@@ -217,6 +225,11 @@ public class Server {
         return response;
     }
 
+    /**
+     * Este método se encarga de crear un JSONObject con la información que debe poseer un nuevo esquema
+     * @param newScheme Recibe el nombre del nuevo esquema por crear
+     * @return retorna un JSONObject con una respuesta según el estado de la creación del nuevo esquema
+     */
     private JSONObject createScheme(String newScheme) {
         JSONObject response = new JSONObject();
         JSONObject schemeObject = new JSONObject(newScheme);
@@ -244,6 +257,11 @@ public class Server {
         return response;
     }
 
+    /**
+     * Este método se encarga de la eliminación de esquemas existentes
+     * @param name Recibe el nombre del esquema el cual se espera eliminar
+     * @return retorna un JSONObject con una respuesta según el estado de la creación del nuevo esquema
+     */
     private JSONObject deleteScheme(String name){
         JSONObject response = new JSONObject();
         if (schemes.containsKey(name)){
@@ -276,6 +294,11 @@ public class Server {
         }
     }
 
+    /**
+     * Este método se encargará de eliminar un esquema del Hash en el que se almacenan todos los esquemas
+     * @param name recibe el nombre del esquema que se quiere eliminar
+     * @return retorna un JSONObject con una respuesta según el estado de la creación del nuevo esquema
+     */
     private JSONObject deleteSchemeFromHash(String name){
         JSONObject response = new JSONObject();
         schemes.remove(name);
@@ -297,6 +320,12 @@ public class Server {
 
     private void modifyScheme() { }//modificar tipo de dato y tamaño
 
+    /**
+     * Este método se encarga de la inserción de datos a un esquema ya creado
+     * @param scheme recibe el nombre del esquema al que corresponde agregarse los datos
+     * @param attr recibe un JSONArray del tipo de dato al cual se le quiere agregar datos
+     * @return retorna un JSONObject con una respuesta según el estado de la creación del nuevo esquema
+     */
     private JSONObject insertData(String scheme, JSONArray attr) {
         System.out.println("Insertando datos...");
         JSONObject response = new JSONObject();
@@ -349,6 +378,12 @@ public class Server {
 
     }
 
+    /**
+     * Este método se realciona con la acción de eliminar datos pertenecientes a un esquema específico
+     * @param scheme recibe el nombre del esquema al cual se le quiere eliminar datos
+     * @param primaryKeys recibe un JSONArray a partir del cual es que se va a eliminar los datos
+     * @return retorna un JSONObject con una respuesta según el estado de la creación del nuevo esquema
+     */
     private JSONObject deleteData(String scheme, JSONArray primaryKeys) {
         System.out.println("Eliminando registro de " + scheme);
         JSONObject response = new JSONObject();
@@ -413,6 +448,11 @@ public class Server {
     }
                      */
 
+    /**
+     * Este método se encarga de la consulta de datos sobre un esquema específico
+     * @param parameters recibe un string con lo que se desee buscar
+     * @return retorna un JSONObject con una respuesta según el estado de la creación del nuevo esquema
+     */
     private JSONObject queryData(String parameters) {
         JSONObject response = new JSONObject();
         JSONObject parametersObject = new JSONObject(parameters);
@@ -454,6 +494,13 @@ public class Server {
 
     }
 
+    /**
+     * En este método se realiza una búsqueda secuencial de los datos
+     * @param scheme recibe el esquema sobtre el que se va a buscar
+     * @param columnToSearch recibe el tipo de dato correspondiente a la columna a la cual pertenece este dato graficamente
+     * @param dataToSearch recibe el dato a buscar
+     * @return retorna un resultado de este proceso
+     */
     private JSONObject sequentialSearch1(String scheme, String columnToSearch, String dataToSearch){
         JSONObject result = new JSONObject();
         JSONObject schemeJson = new JSONObject();
@@ -517,6 +564,14 @@ public class Server {
         return result;
     }
 
+    /**
+     * En este método se realizará una búsqueda pero partiendo de la columna de tipo join
+     * @param scheme recibe el esquema sobtre el que se va a buscar
+     * @param columnToSearch recibe el tipo de dato correspondiente a la columna a la cual pertenece este dato graficamente
+     * @param dataToSearch recibe el dato a buscar
+     * @param joinName recibe el nombre de la columna que es de tipo join
+     * @return retorna un resultado de este proceso
+     */
     private JSONObject searchByJoinColumn(String scheme, String columnToSearch, String dataToSearch, String joinName) {
         JSONObject result = new JSONObject();
         JSONObject schemeJson = new JSONObject();
@@ -607,6 +662,17 @@ public class Server {
 
     }
 
+    /**
+     * Este método es el encargado de construir el objeto JSONObject con la información general, los cuales son los parámtros siguientes
+     * @param result
+     * @param schemeJson
+     * @param joinJson
+     * @param arrayJoinAttr
+     * @param arrayJoinName
+     * @param arraySchemeAttr
+     * @param arraySchemeName
+     * @return retorna un objeto Json con toda la información general
+     */
     private JSONObject getJsonObject(JSONObject result, JSONObject schemeJson, JSONObject joinJson, JSONArray arrayJoinAttr, JSONArray arrayJoinName, JSONArray arraySchemeAttr, JSONArray arraySchemeName) {
         schemeJson.put("attributes", arraySchemeAttr.toString());
         schemeJson.put("scheme", arraySchemeName.toString());
@@ -620,6 +686,12 @@ public class Server {
         return result;
     }
 
+    /**
+     * Se obtiene el índice de la columna por la cual se esta realizando la búsqueda
+     * @param attrName
+     * @param columnToSearch
+     * @return
+     */
     private int getColumnIndex(JSONArray attrName, String columnToSearch) {
         for (int i=0; i<attrName.length(); i++){
             if (attrName.getString(i).equals(columnToSearch)){
@@ -629,6 +701,12 @@ public class Server {
         return -1;
     }
 
+    /**
+     * Se actualiza el índice de los datos de tipo join
+     * @param indexOfJoins
+     * @param joinIndex
+     * @return devuelve lo mismo pero luego de ser ordenado
+     */
     private JSONArray updateIndexOfJoins(JSONArray indexOfJoins, int joinIndex) {
         if (joinIndex!=-1) {
             for (int i = 0; i < indexOfJoins.length(); i++) {
@@ -640,6 +718,13 @@ public class Server {
         return indexOfJoins;
     }
 
+    /**
+     * Se obtiene el índice de un tipo join, según es buscado
+     * @param attrType
+     * @param attrSize
+     * @param joinName
+     * @return
+     */
     private int getJoinIndex(JSONArray attrType, JSONArray attrSize, String joinName) {
         for (int i=0; i<attrType.length();i++){
             if (attrType.getString(i).equals("join")){
@@ -652,12 +737,23 @@ public class Server {
         return -1;
     }
 
+    /**Se va a buscar un Atributo de un esquema
+     *
+     * @param joinPk
+     * @param scheme
+     * @return
+     */
     private String searchAttr(String joinPk, String scheme) {
 
         Hashtable<String, String> schemeOfJoin = collections.get(scheme);
         return schemeOfJoin.get(joinPk);
     }
 
+    /**
+     * Este método se ca a encargar de realizar una búsqueda a partir del índice de unidos /******
+     * @param schemeObject
+     * @return
+     */
     private JSONArray searchIndexOfJoin(JSONObject schemeObject) {
         JSONArray index = new JSONArray();
         String attrType = schemeObject.get("attrType").toString();
@@ -673,6 +769,12 @@ public class Server {
 
     }
 
+    /**
+     * Este método funciona para buscar un índice de tamaño
+     * @param columnToSearch
+     * @param schemeObject
+     * @return
+     */
     private int searchIndexOfArray(String columnToSearch, JSONObject schemeObject) {
         String attrName = schemeObject.get("attrName").toString();
         JSONArray schemeArray = new JSONArray(attrName);
