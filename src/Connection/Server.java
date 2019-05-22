@@ -1,5 +1,6 @@
 package Connection;
 
+import Structures.AbstractTree.AbstractTree;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
@@ -26,6 +27,9 @@ public class Server {
     //nombre del esquema, json con estructura del esquema
         private Hashtable<String, Hashtable<String, String>> collections = new Hashtable<>();
     // nombre del esquema, HashTable <id, jsonArray con atributos>
+
+    private Hashtable<String, Hashtable<String, AbstractTree>> index;
+    // nombre del esquema, Hashtable <nombre indice, arbol>
 
 
     /**
