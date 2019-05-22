@@ -706,26 +706,3 @@ public class RedBlackTree<K extends Comparable<K>,V> {
 }// end class RedBlackTree
 
 
-/*
-Design Decisions:
------------------
-I chose the object RedBlackNode class to have seven instance variables which are
-all declared public as per the assignment specifications.  Each instance of a
-RedBlackNode holds a Comparable "key", which is the key of the RedBlackNode.  It
-also holds another integer "color" which is assigned "0" for BLACK and "1" for
-RED.  The integer variable "numSmaller" holds the elements to the left of a
-given node and "numGreater" holds the elements to the right of a given node, not
-inluding the node itself.
-Each instance also holds a RedBlackNode pointer to the node's "parent", "left"
-child and "right" child.  These values are assigned to nil when a node is
-instantiated.
-The constructor that takes in a Comparable argument assigns that value to the key
-of the node. The empty constructor is there to test Prof. Pitt's test case and
-also in case we want to just create a RedBlackNode and initialize its key later.
-I have chosen to use the sentinel as it is an easier and more
-efficient way to implement Red Black Trees.  The sentinel (nil) is declared
-in the RedBlackTree class as it is most referenced there, in this class
-we initialize the left/right/parent pointers with a static reference to nil.
-*/
-
-// inclusions
