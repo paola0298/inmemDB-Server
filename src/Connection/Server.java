@@ -175,6 +175,7 @@ public class Server {
                 case "getIndexList":
                     response = getIndexList();
                     sendResponse(response.toString(), con);
+                    break;
 
                 case "deleteIndex":
                     deleteIndex();
