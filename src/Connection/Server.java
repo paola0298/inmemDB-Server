@@ -35,8 +35,8 @@ public class Server {
         private Hashtable<String, Hashtable<String, String>> collections = new Hashtable<>();
     // nombre del esquema, HashTable <id, jsonArray con atributos>
 
-    private Hashtable<String, Hashtable<String, AbstractTree>> index = new Hashtable<>();
-    // nombre del esquema, Hashtable <nombre indice, arbol>
+    private Hashtable<String, Hashtable<String, JSONObject>> indexes = new Hashtable<>();
+    // nombre del esquema, Hashtable <nombre indice, jsonobject>  jsonobject = "column", "tree"
     private JSONObject listOfIndex = new JSONObject();
 
 
@@ -130,7 +130,6 @@ public class Server {
                     scheme = msg.getString("scheme");
                     response = deleteScheme(scheme);
                     sendResponse(response.toString(), con);
-
                     break;
 
                 case "modifyScheme":
@@ -178,7 +177,10 @@ public class Server {
                     break;
 
                 case "deleteIndex":
-                    deleteIndex();
+                    scheme = msg.getString("scheme");
+                    String indexNameToDelete = msg.getString("indexName");
+                    response = deleteIndex(scheme, indexNameToDelete);
+                    sendResponse(response.toString(), con);
                     break;
 
                 default:
@@ -551,6 +553,22 @@ public class Server {
         if (index && !searchByJoin) {
             //TODO hacer busqueda por indice sin columna de join
             System.out.println("Buscando por indice");
+            String indexName = parametersObject.getString("tree");
+            Hashtable<String, JSONObject> actualIndexCollection = indexes.get(scheme);
+            JSONObject infoIndexToSearch = actualIndexCollection.get(indexName);
+
+
+
+
+            AbstractTree<String, JSONArray> tree = (AbstractTree<String, JSONArray>) infoIndexToSearch.get("tree");
+            JSONArray resultOfSearch = tree.search(dataToSearch);
+
+            System.out.println("info index " + infoIndexToSearch);
+            System.out.println("Result of search " + tree.search(dataToSearch));
+            System.out.println("Type of tree " + tree.getType());
+
+            result = searchByIndex(scheme, resultOfSearch);
+            return result;
 
         } else if (!index && searchByJoin) {
             System.out.println("Busqueda lineal de columna del join");
@@ -573,6 +591,56 @@ public class Server {
 
         response.put("status", "failed");
         return response;
+
+    }
+
+    private JSONObject searchByIndex(String scheme, JSONArray resultOfSearch) {
+        JSONObject result = new JSONObject();
+
+        JSONObject schemeJson = new JSONObject();
+        JSONObject joinJson =  new JSONObject();
+
+        JSONArray arrayJoinAttr = new JSONArray();
+        JSONArray arrayJoinName = new JSONArray();
+
+        JSONArray arraySchemeAttr = new JSONArray();
+        JSONArray arraySchemeName = new JSONArray();
+
+        if (resultOfSearch != null) {
+            arraySchemeAttr.put(resultOfSearch.toString());
+            arraySchemeName.put(scheme);
+
+            //search for joins
+            JSONObject schemeStructure = new JSONObject(schemes.get(scheme));
+            JSONArray indexOfJoins = searchIndexOfJoin(schemeStructure);
+            JSONArray attrSize =  schemeStructure.getJSONArray("attrSize");
+
+
+            if (indexOfJoins.length() > 0){
+                System.out.println("Hay joins... Recuperando datos...");
+
+                for (int i=0; i<indexOfJoins.length(); i++){
+                    int join = indexOfJoins.getInt(i);
+
+                    System.out.println("join " + attrSize.get(join));
+                    System.out.println(resultOfSearch.getString(join));
+
+                    String joinPk = resultOfSearch.getString(join);
+                    String joinName = attrSize.getString(join);
+                    String attributesActualJoin = searchAttr(joinPk, joinName);
+
+                    arrayJoinAttr.put(attributesActualJoin);
+                    arrayJoinName.put(joinName);
+                }
+            }
+
+            return getJsonObject(result, schemeJson, joinJson, arrayJoinAttr, arrayJoinName, arraySchemeAttr, arraySchemeName);
+
+        } else {
+            result.put("status", "failed");
+            result.put("error", "not found");
+            return result;
+        }
 
     }
 
@@ -873,7 +941,7 @@ public class Server {
     private JSONObject createIndex(String scheme, String indexName, String attrName, String treeName) {
         JSONObject response =  new JSONObject();
         //todo verificar si el hay un indice con el mismo nombre o sobre el mismo atributo y con el mismo arbol
-        AbstractTree<String, String> tree;
+        AbstractTree<String, JSONArray> tree;
         switch (treeName){
             case "AA":
                 System.out.println("Creating AA Tree");
@@ -917,13 +985,11 @@ public class Server {
         System.out.println(response);
 
         return response;
-
-
-        //TODO create method to create a new index
     }
 
     private JSONObject getIndexList() {
         JSONObject response = new JSONObject();
+        System.out.println(listOfIndex);
         response.put("status", "success");
         response.put("list", listOfIndex);
         return response;
@@ -935,12 +1001,30 @@ public class Server {
      * @return
      */
 
+//    jsonobject = "column", "tree"
+    /*
+    listOfIndex {
+
+        scheme : jsonObject { "column", "list"}
+
+    }
+     */
+
     private JSONArray getActualIndexList(String scheme) {
-        JSONArray list = new JSONArray();
-        Hashtable<String, AbstractTree> actualCollectionIndex = index.get(scheme);
+
+        JSONArray indexCollection = new JSONArray();
+        Hashtable<String, JSONObject> actualCollectionIndex = indexes.get(scheme);
 
         for (String key : actualCollectionIndex.keySet()){
-            list.put(key);
+            JSONArray listInfo = new JSONArray();
+
+            JSONObject infoTree = actualCollectionIndex.get(key);
+            String column = infoTree.getString("column");
+            // key es el nombre del indice
+            listInfo.put(key);
+            listInfo.put(column);
+
+            indexCollection.put(listInfo);
         }
 
         Set<String> keySet = listOfIndex.keySet();
@@ -952,37 +1036,87 @@ public class Server {
             }
         }
 
-        listOfIndex.put(scheme, list);
 
-        return list;
+        listOfIndex.put(scheme, indexCollection);
+        System.out.println("Lista de indices " + indexCollection);
+
+        return indexCollection;
     }
 
-    private void fillTree(String scheme, String indexName, String attrName, AbstractTree<String,String> tree) {
+
+//    jsonobject = "column", "tree"
+
+    private void fillTree(String scheme, String indexName, String attrName, AbstractTree<String,JSONArray> tree) {
         if (collections.containsKey(scheme)){
             JSONObject schemeStructure = new JSONObject(schemes.get(scheme));
             int attrNameIndex = searchIndexOfArray(attrName, schemeStructure);
             Hashtable<String, String> actualCollection = collections.get(scheme);
 
+            //llenar el arbol
             for (String id : actualCollection.keySet()){
                 JSONArray attrArray = new JSONArray(actualCollection.get(id));
-                tree.add(attrArray.getString(attrNameIndex), actualCollection.get(id));
+                tree.add(attrArray.getString(attrNameIndex), new JSONArray(actualCollection.get(id)));
             }
             tree.show();
         }
-        if (!index.containsKey(scheme)) {
-            Hashtable<String, AbstractTree> treeToAdd = new Hashtable<>();
-            treeToAdd.put(indexName, tree);
-            index.put(scheme, treeToAdd);
+
+        JSONObject treeObject = new JSONObject();
+        treeObject.put("column", attrName);
+        treeObject.put("tree", tree);
+
+        if (!indexes.containsKey(scheme)) {
+            Hashtable<String, JSONObject> indexToAdd = new Hashtable<>();
+            indexToAdd.put(indexName, treeObject);
+            indexes.put(scheme, indexToAdd);
         } else {
-            Hashtable<String, AbstractTree> actualIndexCollection = index.get(scheme);
-            index.remove(scheme);
-            actualIndexCollection.put(indexName, tree);
-            index.put(scheme, actualIndexCollection);
+            Hashtable<String, JSONObject> actualIndexCollection = indexes.get(scheme);
+            indexes.remove(scheme);
+            actualIndexCollection.put(indexName, treeObject);
+            indexes.put(scheme, actualIndexCollection);
         }
     }
 
-    private void deleteIndex() {
+    //    jsonobject = "column", "tree"
+    /*
+    listOfIndex {
+
+        scheme : jsonObject { "column", "list"}
+
+    }*/
+
+    private JSONObject deleteIndex(String scheme, String indexNameToDelete) {
         //TODO create method to delete a index
+        System.out.println("Eliminado scheme");
+        JSONObject response = new JSONObject();
+        if (indexes.containsKey(scheme)) {
+            Hashtable<String, JSONObject> indexOfScheme = indexes.get(scheme);
+            if (indexOfScheme.containsKey(indexNameToDelete)){
+                indexOfScheme.remove(indexNameToDelete);
+
+                JSONArray list = listOfIndex.getJSONArray("list");
+                String column = listOfIndex.getString("column");
+                JSONArray newList = new JSONArray();
+
+                for (int i=0; i<list.length(); i++){
+                    if (!list.getString(i).equals(indexNameToDelete)){
+                        newList.put(list.getString(i));
+                    }
+                }
+
+
+                indexes.remove(scheme);
+                indexes.put(scheme, indexOfScheme);
+
+                response.put("status", "success");
+
+                return response;
+
+            }
+        }
+
+        response.put("status", "failed");
+        return response;
+
     }
 
     private void stopServer() {
